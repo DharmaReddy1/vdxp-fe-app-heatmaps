@@ -1,0 +1,337 @@
+<mvc:View
+	controllerName="jnj.com.heatmap.dashboard.controller.Main"
+	displayBlock="true"
+	xmlns="sap.m"
+	xmlns:f="sap.f"
+	xmlns:l="sap.ui.layout"
+	xmlns:mvc="sap.ui.core.mvc"
+	xmlns:core="sap.ui.core"
+	xmlns:viz="sap.viz.ui5.controls"
+	xmlns:vizData="sap.viz.ui5.data"
+	xmlns:vizFeeds="sap.viz.ui5.controls.common.feeds"
+	xmlns:html="http://www.w3.org/1999/xhtml">
+
+	<Page id="mainPage" showHeader="false" backgroundDesign="List" class="fullWidthPage" width="100%">
+		<content>
+			<VBox class="dashboardRoot" width="100%">
+
+				<!-- ═══ HEADER BAR ═══════════════════════════════════════════ -->
+				<HBox class="dashboardHeader" alignItems="Center" justifyContent="SpaceBetween">
+					<HBox alignItems="Center">
+						<html:div class="appLogoWrap">
+							<core:Icon id="greeringIcon" class="greetingMorningIcon"/>
+						</html:div>
+						<VBox class="sapUiTinyMarginBegin">
+							<Title id="greetingTitle" text="{dashboard>/greeting} 👋" level="H3" class="greetingTitle"/>
+							<Text text="Operational Intelligence · Risk Heatmap Dashboard" class="greetingSubtitle"/>
+						</VBox>
+					</HBox>
+					<HBox alignItems="Center" class="headerActions">
+						<Button
+							text="Upload Data"
+							icon="sap-icon://upload"
+							press=".onNavigateToUpload"
+							type="Transparent"
+							class="headerBtn"/>
+						<Button
+							text="View All Risks"
+							icon="sap-icon://list"
+							press=".onViewAllRisks"
+							type="Transparent"
+							class="headerBtn"/>
+						<Button
+							icon="sap-icon://refresh"
+							tooltip="Refresh dashboard"
+							press=".onRefresh"
+							type="Transparent"
+							class="headerIconBtn"/>
+						<Text text="{dashboard>/lastRefreshed}" class="refreshText"/>
+					</HBox>
+				</HBox>
+
+				<!-- ═══ KPI TILES ROW ════════════════════════════════════════ -->
+				<HBox class="kpiRow">
+					<!-- Total Risks -->
+					<VBox class="kpiCard kpiCardRed">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Total Risks" class="kpiLabel"/>
+							<core:Icon src="sap-icon://alert" class="kpiIconSmall kpiIconRed"/>
+						</HBox>
+						<Title text="{dashboard>/totalRisks}" level="H1" class="kpiValue"/>
+						<HBox alignItems="Center" class="kpiFooter">
+							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
+								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
+								<Text text="{dashboard>/totalTrend}%" class="trendText"/>
+							</HBox>
+							<Text text=" vs. last 7 days" class="kpiSubtext"/>
+						</HBox>
+					</VBox>
+					<!-- High Severity -->
+					<VBox class="kpiCard kpiCardOrange">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="High Severity" class="kpiLabel"/>
+							<core:Icon src="sap-icon://warning2" class="kpiIconSmall kpiIconOrange"/>
+						</HBox>
+						<Title text="{dashboard>/highSeverity}" level="H1" class="kpiValue"/>
+						<HBox alignItems="Center" class="kpiFooter">
+							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
+								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
+								<Text text="{dashboard>/highTrend}%" class="trendText"/>
+							</HBox>
+							<Text text=" vs. last 7 days" class="kpiSubtext"/>
+						</HBox>
+					</VBox>
+					<!-- Open Incidents -->
+					<VBox class="kpiCard kpiCardBlue">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Open Incidents" class="kpiLabel"/>
+							<core:Icon src="sap-icon://document-text" class="kpiIconSmall kpiIconBlue"/>
+						</HBox>
+						<Title text="{dashboard>/openIncidents}" level="H1" class="kpiValue"/>
+						<HBox alignItems="Center" class="kpiFooter">
+							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
+								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
+								<Text text="{dashboard>/openTrend}%" class="trendText"/>
+							</HBox>
+							<Text text=" vs. last 7 days" class="kpiSubtext"/>
+						</HBox>
+					</VBox>
+					<!-- On Track -->
+					<VBox class="kpiCard kpiCardGreen">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="On Track" class="kpiLabel"/>
+							<core:Icon src="sap-icon://accept" class="kpiIconSmall kpiIconGreen"/>
+						</HBox>
+						<Title text="{dashboard>/onTrackPct}%" level="H1" class="kpiValue"/>
+						<HBox alignItems="Center" class="kpiFooter">
+							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
+								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
+								<Text text="{dashboard>/onTrackTrend}%" class="trendText"/>
+							</HBox>
+							<Text text=" vs. last 7 days" class="kpiSubtext"/>
+						</HBox>
+					</VBox>
+				</HBox>
+
+				<!-- ═══ FILTER BAR ═══════════════════════════════════════════ -->
+				<HBox class="filterBar" alignItems="Center" wrap="Wrap">
+					<HBox alignItems="Center" class="filterBarLeft">
+						<core:Icon src="sap-icon://filter" class="filterBarIcon"/>
+						<Text text="Filters" class="filterBarLabel"/>
+					</HBox>
+					<VBox class="filterItem">
+						<Label text="Country" class="filterLabel" labelFor="countryFilter"/>
+						<Select id="countryFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Countries"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Process" class="filterLabel" labelFor="processFilter"/>
+						<Select id="processFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Processes"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Criticality" class="filterLabel" labelFor="criticalityFilter"/>
+						<Select id="criticalityFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Criticality"/>
+								<core:Item key="Critical" text="🔴 Critical"/>
+								<core:Item key="High" text="🟠 High"/>
+								<core:Item key="Medium" text="🟡 Medium"/>
+								<core:Item key="Low" text="🟢 Low"/>
+								<core:Item key="Normal" text="✅ Normal"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Complexity" class="filterLabel" labelFor="complexityFilter"/>
+						<Select id="complexityFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Complexity"/>
+								<core:Item key="High" text="High"/>
+								<core:Item key="Medium" text="Medium"/>
+								<core:Item key="Low" text="Low"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Risk Category" class="filterLabel" labelFor="riskCategoryFilter"/>
+						<Select id="riskCategoryFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Categories"/>
+							</items>
+						</Select>
+					</VBox>
+					<Button
+						text="Clear Filters"
+						icon="sap-icon://clear-filter"
+						press=".onResetFilters"
+						class="resetButton"
+						type="Transparent"
+						enabled="{dashboard>/filtersActive}"/>
+				</HBox>
+
+				<!-- ═══ HEATMAP PANEL ════════════════════════════════════════ -->
+				<VBox class="heatmapFullPanel panelCard">
+					<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
+						<HBox alignItems="Center">
+							<core:Icon src="sap-icon://heat-stacked" class="panelHeaderIcon"/>
+							<VBox class="sapUiTinyMarginBegin">
+								<Title text="Operational Risk Heatmap" level="H4" class="panelTitle"/>
+								<Text text="Click any cell to drill-down · Color = dominant criticality · Intensity = volume" class="panelSubtitle"/>
+							</VBox>
+						</HBox>
+						<HBox alignItems="Center">
+							<SegmentedButton id="heatmapToggle" selectionChange=".onHeatmapToggle" contentMode="ContentFit" selectedKey="process">
+								<items>
+									<SegmentedButtonItem key="process" text="By Process"/>
+									<SegmentedButtonItem key="country" text="By Country"/>
+								</items>
+							</SegmentedButton>
+						</HBox>
+					</HBox>
+
+					<!-- Heatmap container (rendered via JS) -->
+					<html:div id="heatmapTableContainer" class="heatmapTableWrapper"/>
+
+					<!-- Legend row -->
+					<HBox class="heatmapLegend" alignItems="Center" justifyContent="SpaceBetween">
+						<HBox alignItems="Center" class="legendGroup">
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendCritical"/>
+								<Text text="Critical" class="legendText"/>
+							</HBox>
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendHigh"/>
+								<Text text="High" class="legendText"/>
+							</HBox>
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendMedium"/>
+								<Text text="Medium" class="legendText"/>
+							</HBox>
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendLow"/>
+								<Text text="Low" class="legendText"/>
+							</HBox>
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendNormal"/>
+								<Text text="Normal" class="legendText"/>
+							</HBox>
+						</HBox>
+						<Text text="Tip: Click a cell to filter the panels below" class="legendHint"/>
+					</HBox>
+				</VBox>
+
+				<!-- ═══ BOTTOM PANELS ROW ════════════════════════════════════ -->
+				<HBox class="bottomPanelsRow" alignItems="Stretch">
+
+					<!-- Top Risk Areas -->
+					<VBox class="bottomPanel panelCard">
+						<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
+							<HBox alignItems="Center">
+								<core:Icon src="sap-icon://status-negative" class="panelHeaderIcon panelHeaderIconRed"/>
+								<Title text="Top Risk Areas" level="H4" class="panelTitle sapUiSmallMarginBegin"/>
+							</HBox>
+							<Link text="View all →" press=".onViewAllRisks" class="viewAllLink"/>
+						</HBox>
+						<List id="topRiskList" noDataText="No risks found" showSeparators="None" class="topRiskList " />
+					</VBox>
+
+					<!-- Risk Distribution -->
+					<VBox class="bottomPanel panelCard">
+						<HBox alignItems="Center" class="panelHeader">
+							<core:Icon src="sap-icon://donutTitle"
+								text="Risk Distribution"
+								level="H4"
+								class="panelTitle sapUiTinyMarginBegin"/>
+							<Title text="Risk Distribution" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+						</HBox>
+						<HBox
+							width="100%"
+							height="259px"
+							fitContainer="true"
+							alignItems="Center">
+							<!-- Chart -->
+							<VBox width="65%">
+								<viz:VizFrame
+									id="donutViz"
+									vizType="donut"
+									width="100%"
+									height="220px"
+									renderComplete=".onDonutRenderComplete">
+
+									<viz:dataset>
+										<vizData:FlattenedDataset data="{/RiskDistribution}">
+											<vizData:dimensions>
+												<vizData:DimensionDefinition
+													name="Criticality"
+													value="{criticality}"/>
+											</vizData:dimensions>
+
+											<vizData:measures>
+												<vizData:MeasureDefinition
+													name="Count"
+													value="{count}"/>
+											</vizData:measures>
+										</vizData:FlattenedDataset>
+									</viz:dataset>
+
+									<viz:feeds>
+										<vizFeeds:FeedItem
+											uid="size"
+											type="Measure"
+											values="Count"/>
+
+										<vizFeeds:FeedItem
+											uid="color"
+											type="Dimension"
+											values="Criticality"/>
+									</viz:feeds>
+
+								</viz:VizFrame>
+							</VBox>
+
+							<!-- Details -->
+							<VBox
+								id="donutLegend"
+								width="35%"
+								class="sapUiTinyMarginBegin">
+							</VBox>
+
+						</HBox>
+
+					</VBox>
+
+					<!-- Recent Investigation Queue -->
+					<VBox class="bottomPanel panelCard">
+						<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
+							<HBox alignItems="Center">
+								<core:Icon src="sap-icon://activity-2" class="panelHeaderIcon panelHeaderIconOrange"/>
+								<Title text="Investigation Queue" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+							</HBox>
+							<Link text="View all →" press=".onViewAllRisks" class="viewAllLink"/>
+						</HBox>
+						<List id="investigationList" noDataText="No open incidents" showSeparators="None" class="investigationList"/>
+					</VBox>
+
+					<!-- Complexity Profile -->
+					<VBox class="bottomPanel panelCard">
+						<HBox alignItems="Center" class="panelHeader">
+							<core:Icon src="sap-icon://bar-chart" class="panelHeaderIcon panelHeaderIconGreen"/>
+							<Title text="Complexity Profile" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+						</HBox>
+						<VBox id="complexityBars" class="complexityBars"/>
+					</VBox>
+
+				</HBox>
+
+			</VBox>
+		</content>
+	</Page>
+
+</mvc:View>

@@ -1,0 +1,198 @@
+{
+	"_version": "1.65.0",
+
+	"sap.app": {
+		"id": "jnj.com.heatmap.risklist",
+		"type": "application",
+		"i18n": "i18n/i18n.properties",
+		"title": "{{appTitle}}",
+		"description": "{{appDescription}}",
+		"applicationVersion": {
+			"version": "0.0.1"
+		},
+		"dataSources": {
+			"HeatmapService": {
+				"uri": "/heatmap/",
+				"type": "OData",
+				"settings": {
+					"annotations": [],
+					"localUri": "localService/metadata.xml",
+					"odataVersion": "4.0"
+				}
+			}
+		},
+		"crossNavigation": {
+			"inbounds": {
+				"RiskList-manage": {
+					"semanticObject": "RiskList",
+					"action": "manage",
+					"title": "Risk List",
+					"icon": "sap-icon://list",
+					"info": "Full risk list with filtering, sorting, and detailed object pages",
+					"signature": {
+						"parameters": {},
+						"additionalParameters": "allowed"
+					}
+				}
+			}
+		}
+	},
+
+	"sap.ui": {
+		"technology": "UI5",
+		"icons": {},
+		"deviceTypes": {
+			"desktop": true,
+			"tablet": true,
+			"phone": true
+		},
+		"fullWidth": true
+	},
+
+	"sap.fiori": {
+		"registrationIds": [],
+		"archeType": "transactional"
+	},
+
+	"sap.ui5": {
+		"flexEnabled": true,
+		"dependencies": {
+			"minUI5Version": "1.120.0",
+			"libs": {
+				"sap.m": {},
+				"sap.ui.core": {},
+				"sap.fe.templates": {}
+			}
+		},
+
+		"contentDensities": {
+			"compact": true,
+			"cozy": true
+		},
+
+		"models": {
+			"i18n": {
+				"type": "sap.ui.model.resource.ResourceModel",
+				"settings": {
+					"bundleName": "jnj.com.heatmap.risklist.i18n.i18n",
+					"async": true
+				}
+			},
+			"": {
+				"dataSource": "HeatmapService",
+				"preload": true,
+				"settings": {
+					"autoExpandSelect": true,
+					"earlyRequests": true,
+					"operationMode": "Server"
+				}
+			}
+		},
+
+		"routing": {
+			"config": {},
+			"routes": [
+				{
+					"pattern": ":?query:",
+					"name": "RiskList",
+					"target": "RiskList"
+				},
+				{
+					"pattern": "Risk(ID={key},IsActiveEntity={IsActiveEntity}):?query:",
+					"name": "RiskObjectPage",
+					"target": "RiskObjectPage"
+				},
+				{
+					"pattern": "Risk(ID={key},IsActiveEntity={IsActiveEntity})/mitigationPlans(ID={mitigationPlansKey},IsActiveEntity={mitigationPlansIsActiveEntity}):?query:",
+					"name": "MitigationPlanObjectPage",
+					"target": "MitigationPlanObjectPage"
+				},
+				{
+					"pattern": "Risk(ID={key},IsActiveEntity={IsActiveEntity})/actionTrackers(ID={actionTrackersKey},IsActiveEntity={actionTrackersIsActiveEntity}):?query:",
+					"name": "ActionTrackerObjectPage",
+					"target": "ActionTrackerObjectPage"
+				}
+			],
+			"targets": {
+				"RiskList": {
+					"type": "Component",
+					"id": "RiskList",
+					"name": "sap.fe.templates.ListReport",
+					"options": {
+						"settings": {
+							"contextPath": "/Risk",
+							"variantManagement": "Page",
+							"initialLoad": "Auto",
+							"navigation": {
+								"Risk": {
+									"detail": {
+										"route": "RiskObjectPage"
+									}
+								}
+							},
+							"controlConfiguration": {
+								"@com.sap.vocabularies.UI.v1.LineItem": {
+									"actions": {
+										"ImportExcel": {
+												"press": "jnj.com.heatmap.risklist.ext.controller.ListReportExt.onOpenExcelUpload",
+											"text": "Import Excel",
+											"enabled": true,
+											"position": {
+												"placement": "Before",
+												"anchor": "StandardAction::Create"
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				},
+				"RiskObjectPage": {
+					"type": "Component",
+					"id": "RiskObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"contextPath": "/Risk",
+							"navigation": {
+								"mitigationPlans": {
+									"detail": {
+										"route": "MitigationPlanObjectPage"
+									}
+								},
+								"actionTrackers": {
+									"detail": {
+										"route": "ActionTrackerObjectPage"
+									}
+								}
+							}
+						}
+					}
+				},
+				"MitigationPlanObjectPage": {
+					"type": "Component",
+					"id": "MitigationPlanObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"contextPath": "/Risk/mitigationPlans",
+							"navigation": {}
+						}
+					}
+				},
+				"ActionTrackerObjectPage": {
+					"type": "Component",
+					"id": "ActionTrackerObjectPage",
+					"name": "sap.fe.templates.ObjectPage",
+					"options": {
+						"settings": {
+							"contextPath": "/Risk/actionTrackers",
+							"navigation": {}
+						}
+					}
+				}
+			}
+		}
+	}
+}

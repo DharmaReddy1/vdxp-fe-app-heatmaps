@@ -1,0 +1,581 @@
+/* =====================================================================
+   Risk Heatmap Dashboard — Production Styles
+   ===================================================================== */
+
+/* ─── Reset & full-width layout ─────────────────────────────────── */
+*, *::before, *::after { max-width: none !important; box-sizing: border-box; }
+input, select, textarea, button { max-width: 100% !important; }
+
+html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow-x: hidden !important;
+    font-family: "72", "72full", Arial, Helvetica, sans-serif;
+}
+
+/* SAP shell/body overrides */
+.sapUiBody { margin: 0 !important; padding: 0 !important; }
+
+.sapUShellApplicationContainer, .sapUShellInnerShell, .sapUShellCenterArea,
+.sapUShellContentDiv, .sapUShellCanvasContainer, .sapUShellCanvasSplitContainer,
+.sapUShellShellObj, .sapUShellShell, .sapUShellFullHeight,
+.sapMSplitContainer, .sapMSplitContainerDetail, .sapMSplitContainerMaster,
+.sapMNavItem, .sapUiView, .sapUiComponentContainer, .sapUiComponent,
+[data-sap-ui-component] {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+.fullWidthPage.sapMPage {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    left: 0 !important;
+    right: 0 !important;
+}
+.fullWidthPage > .sapMPageEnableScrolling,
+.fullWidthPage .sapMPageSub,
+.fullWidthPage .sapMPageScroll,
+.fullWidthPage .sapMPageScrollContainer {
+    width: 100% !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+/* ─── Root ───────────────────────────────────────────────────────── */
+.dashboardRoot {
+    padding: 1rem 1.5rem 2rem;
+    background: #F0F2F5;
+    min-height: 100vh;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* ─── Panel card base ────────────────────────────────────────────── */
+.panelCard {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0,0,0,0.05);
+}
+.panelHeader {
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid #F3F4F6;
+}
+.panelTitle .sapMTitle {
+    font-size: 0.92rem !important;
+    font-weight: 600 !important;
+    color: #111827;
+    line-height: 1.3;
+}
+.panelSubtitle {
+    font-size: 0.72rem !important;
+    color: #9CA3AF !important;
+    margin-top: 1px;
+}
+.viewAllLink { font-size: 0.78rem !important; }
+
+/* ─── Panel header icons ─────────────────────────────────────────── */
+.panelHeaderIcon { font-size: 1rem !important; color: #6B7280; margin-right: 8px;}
+.panelHeaderIconRed    { color: #EF4444 !important; }
+.panelHeaderIconBlue   { color: #3B82F6 !important; }
+.panelHeaderIconOrange { color: #F59E0B !important; }
+.panelHeaderIconGreen  { color: #10B981 !important; }
+
+/* ─── Header bar ─────────────────────────────────────────────────── */
+.dashboardHeader {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 0.9rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+/* App logo */
+.appLogoWrap {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #1473E6 0%, #0D5DBD 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+}
+.appLogoIcon { font-size: 1.2rem !important; color: #ffffff !important; }
+
+.greetingTitle .sapMTitle {
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    color: #111827;
+    line-height: 1.2;
+}
+.greetingSubtitle {
+    font-size: 0.78rem !important;
+    color: #6B7280 !important;
+}
+
+/* Header right actions */
+.headerActions { gap: 0.25rem; }
+.headerBtn.sapMBtn .sapMBtnInner {
+    font-size: 0.82rem !important;
+    color: #374151 !important;
+    border-radius: 6px !important;
+}
+.headerBtn.sapMBtn:hover .sapMBtnInner { background: #F3F4F6 !important; }
+.headerIconBtn.sapMBtn .sapMBtnInner {
+    border-radius: 6px !important;
+    color: #6B7280 !important;
+}
+.headerIconBtn.sapMBtn:hover .sapMBtnInner { background: #F3F4F6 !important; }
+.refreshText { font-size: 0.72rem !important; color: #9CA3AF !important; margin-left: 0.25rem; }
+
+/* ─── KPI Row ────────────────────────────────────────────────────── */
+.kpiRow {
+    display: flex;
+    gap: 0.875rem;
+    margin-bottom: 1rem;
+}
+.kpiCard {
+    flex: 1;
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 1rem 1.1rem 0.85rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border-left: 4px solid transparent;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+.kpiCardRed    { border-left-color: #EF4444; }
+.kpiCardOrange { border-left-color: #F59E0B; }
+.kpiCardBlue   { border-left-color: #3B82F6; }
+.kpiCardGreen  { border-left-color: #10B981; }
+
+.kpiLabel {
+    font-size: 0.75rem !important;
+    color: #6B7280 !important;
+    font-weight: 500 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.kpiValue .sapMTitle {
+    font-size: 1.75rem !important;
+    font-weight: 700 !important;
+    color: #111827 !important;
+    line-height: 1.1;
+}
+.kpiFooter { gap: 0.35rem; margin-top: 0.15rem; }
+.kpiSubtext { font-size: 0.72rem !important; color: #9CA3AF !important; }
+
+/* Small icon top-right */
+.kpiIconSmall { font-size: 1rem !important; opacity: 0.7; }
+.kpiIconRed    { color: #EF4444 !important; }
+.kpiIconOrange { color: #F59E0B !important; }
+.kpiIconBlue   { color: #3B82F6 !important; }
+.kpiIconGreen  { color: #10B981 !important; }
+
+/* Trend badges */
+.kpiTrend {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: #F0FDF4;
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+.kpiTrend .sapUiIcon, .kpiTrend .sapMText {
+    color: #10B981 !important;
+    font-size: 0.72rem !important;
+}
+.kpiTrendDown { background: #FEF2F2 !important; }
+.kpiTrendDown .sapUiIcon, .kpiTrendDown .sapMText { color: #EF4444 !important; }
+
+/* ─── Filter Bar ─────────────────────────────────────────────────── */
+.filterBar {
+    background: #ffffff;
+    border-radius: 10px;
+    padding: 0.7rem 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    gap: 0.875rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+}
+
+/* Left label group */
+.filterBarLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding-bottom: 0.2rem;
+    flex-shrink: 0;
+}
+.filterBarIcon { font-size: 0.9rem !important; color: #6B7280 !important; }
+.filterBarLabel {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #374151 !important;
+}
+
+/* Active filter count badge */
+.filterActiveBadge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    background: #3B82F6;
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 700;
+    border-radius: 9px;
+    padding: 0 5px;
+    line-height: 1;
+}
+
+.filterItem { min-width: 120px; }
+.filterLabel { font-size: 0.72rem !important; color: #6B7280 !important; margin-bottom: 2px; }
+.filterSelect { min-width: 120px; }
+
+/* Clear filters button */
+.resetButton.sapMBtn .sapMBtnInner {
+    color: #EF4444 !important;
+    border-radius: 6px !important;
+    font-size: 0.82rem !important;
+}
+.resetButton.sapMBtn:hover .sapMBtnInner { background: #FEF2F2 !important; }
+.resetButton.sapMBtn.sapMBtnDisabled .sapMBtnInner {
+    color: #D1D5DB !important;
+    opacity: 0.7;
+}
+
+/* ─── Heatmap Panel ──────────────────────────────────────────────── */
+.heatmapFullPanel {
+    width: 100%;
+    margin-bottom: 1rem;
+    box-sizing: border-box;
+}
+
+/* Loading state */
+.heatmapLoading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 0.75rem;
+    color: #6B7280;
+}
+.heatmapSpinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #E5E7EB;
+    border-top-color: #3B82F6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Heatmap table wrapper */
+.heatmapTableWrapper {
+    overflow-x: auto;
+    margin-bottom: 0.75rem;
+    border-radius: 6px;
+}
+.heatmapScrollWrapper {
+    overflow-x: auto;
+    border-radius: 6px;
+}
+
+/* Heatmap table */
+.heatmapTable {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 0.78rem;
+}
+.heatmapTable th,
+.heatmapTable td {
+    border: 1px solid #E5E7EB;
+    padding: 7px 10px;
+    text-align: center;
+    white-space: nowrap;
+}
+.heatmapCornerHeader {
+    background: #F9FAFB;
+    border-color: #E5E7EB;
+    min-width: 90px;
+}
+.heatmapColHeader {
+    background: #F9FAFB;
+    font-weight: 600;
+    color: #374151;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+}
+.heatmapRowLabel {
+    background: #F9FAFB;
+    font-weight: 600;
+    color: #374151;
+    text-align: left;
+    min-width: 90px;
+    font-size: 0.75rem;
+}
+
+/* Heatmap cells */
+.heatmapCell {
+    min-width: 52px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    transition: filter 0.12s, transform 0.1s;
+    position: relative;
+}
+.heatmapCellActive {
+    cursor: pointer;
+}
+.heatmapCellActive:hover {
+    filter: brightness(0.88);
+    transform: scale(1.04);
+    z-index: 1;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.heatmapCellEmpty {
+    background: #F9FAFB !important;
+    color: #D1D5DB !important;
+    cursor: default;
+}
+.heatmapCellEmpty:hover {
+    filter: none;
+    transform: none;
+    box-shadow: none;
+}
+
+/* Cell badge (letter) */
+.heatmapCellBadge {
+    display: inline-block;
+    font-size: 0.6rem;
+    font-weight: 700;
+    border-radius: 3px;
+    padding: 0 3px;
+    margin-left: 3px;
+    vertical-align: middle;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+.heatmapBadgeCritical { background: rgba(255,255,255,0.3); color: #fff; }
+.heatmapBadgeHigh     { background: rgba(255,255,255,0.3); color: #fff; }
+.heatmapBadgeMedium   { background: rgba(255,255,255,0.25); color: #fff; }
+.heatmapBadgeLow      { background: rgba(0,0,0,0.12); color: #333; }
+.heatmapBadgeNormal   { background: rgba(255,255,255,0.3); color: #fff; }
+
+/* No-data state */
+.heatmapNoData {
+    padding: 2.5rem 1rem;
+    text-align: center;
+    color: #9CA3AF;
+}
+.heatmapNoDataIcon {
+    font-size: 2.5rem;
+    display: block;
+    margin-bottom: 0.5rem;
+    opacity: 0.5;
+}
+.heatmapNoDataSub {
+    font-size: 0.82rem;
+    color: #9CA3AF;
+    margin-top: 0.25rem;
+}
+
+/* ─── Heatmap Legend ─────────────────────────────────────────────── */
+.heatmapLegend {
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.legendGroup {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+}
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.legendDot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+.legendCritical { background: #7B1FA2; }
+.legendHigh     { background: #EF4444; }
+.legendMedium   { background: #F59E0B; }
+.legendLow      { background: #EAB308; border: 1px solid #ca8a04; }
+.legendNormal   { background: #10B981; }
+.legendText { font-size: 0.72rem !important; color: #6B7280 !important; }
+.legendHint {
+    font-size: 0.72rem !important;
+    color: #9CA3AF !important;
+    font-style: italic;
+}
+
+/* ─── Top Risk List ──────────────────────────────────────────────── */
+.topRiskList.sapMList .sapMLIB { padding: 0 !important; border: none !important; }
+.topRiskRow {
+    padding: 0.45rem 0;
+    width: 100%;
+    border-bottom: 1px solid #F9FAFB;
+}
+.topRiskRow:last-child { border-bottom: none; }
+.riskRank {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #E5E7EB;
+    color: #374151;
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    margin-right: 0.5rem;
+}
+.rank1 { background: #EF4444 !important; color: #fff !important; }
+.rank2 { background: #F59E0B !important; color: #fff !important; }
+.rank3 { background: #EAB308 !important; color: #fff !important; }
+
+.riskTitle   { font-size: 0.8rem !important; font-weight: 600 !important; color: #111827 !important; }
+.riskSubtitle { font-size: 0.72rem !important; color: #6B7280 !important; }
+
+.critBadge {
+    font-size: 0.68rem;
+    font-weight: 600;
+    border-radius: 4px;
+    padding: 2px 7px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.critBadgeCritical { background: #F3E8FF; color: #7B1FA2; }
+.critBadgeHigh     { background: #FEE2E2; color: #EF4444; }
+.critBadgeMedium   { background: #FEF3C7; color: #D97706; }
+.critBadgeLow      { background: #FEF9C3; color: #A16207; }
+.critBadgeNormal   { background: #DCFCE7; color: #166534; }
+
+/* ─── Investigation Queue ────────────────────────────────────────── */
+.investigationList.sapMList .sapMLIB { padding: 0 !important; border: none !important; }
+.invRow {
+    padding: 0.4rem 0;
+    width: 100%;
+    border-bottom: 1px solid #F9FAFB;
+}
+.invRow:last-child { border-bottom: none; }
+.invIcon { color: #3B82F6 !important; margin-right: 0.4rem; font-size: 0.9rem !important; flex-shrink: 0; }
+.invTitle    { font-size: 0.8rem !important; font-weight: 500 !important; color: #111827 !important; }
+.invSubtitle { font-size: 0.72rem !important; color: #6B7280 !important; }
+.invTime     { font-size: 0.68rem !important; color: #9CA3AF !important; white-space: nowrap; }
+
+/* ─── Donut Legend ───────────────────────────────────────────────── */
+.donutLegend { margin-top: 0.5rem; }
+.donutLegendRow {
+    display: flex;
+    align-items: center;
+    padding: 3px 0;
+    gap: 4px;
+}
+.donutDot {
+    font-size: 0.8rem !important;
+    flex-shrink: 0;
+    margin-right: 0.35rem;
+
+    position: relative;
+    top: 1px;
+}
+.donutDotCritical { color: #7B1FA2 !important; }
+.donutDotHigh     { color: #EF4444 !important; }
+.donutDotMedium   { color: #F59E0B !important; }
+.donutDotLow      { color: #EAB308 !important; }
+.donutDotNormal   { color: #10B981 !important; }
+.donutLegendLabel {
+    font-size: 0.78rem !important;
+    color: #374151 !important;
+    flex: 1;
+}
+.donutLegendCount { font-size: 0.78rem !important; font-weight: 600 !important; color: #111827 !important; }
+.donutLegendPct   { font-size: 0.72rem !important; color: #9CA3AF !important; min-width: 36px; text-align: right; }
+
+/* ─── Complexity Bars ────────────────────────────────────────────── */
+.complexityBars { gap: 0.4rem; }
+.complexityRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 6px;
+}
+.complexityLabel {
+    min-width: 55px;
+    font-size: 0.75rem;
+    color: #374151;
+    font-weight: 500;
+}
+.complexityBarWrap {
+    flex: 1;
+    background: #F3F4F6;
+    border-radius: 4px;
+    height: 12px;
+    overflow: hidden;
+}
+.complexityBar {
+    height: 12px;
+    border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    min-width: 4px;
+}
+.complexityCount {
+    font-size: 0.75rem;
+    color: #6B7280;
+    min-width: 28px;
+    text-align: right;
+}
+
+/* ─── Bottom panels row ──────────────────────────────────────────── */
+.bottomPanelsRow {
+    gap: 0.875rem;
+    align-items: flex-start;
+    margin-bottom: 1rem;
+}
+.bottomPanel { flex: 1; min-width: 0; }
+
+/* ─── Misc ───────────────────────────────────────────────────────── */
+.infoIcon { color: #9CA3AF !important; font-size: 0.85rem !important; cursor: pointer; }
+.infoIcon:hover { color: #6B7280 !important; }
+
+/* ─── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 1280px) {
+    .bottomPanelsRow { flex-wrap: wrap; }
+    .bottomPanel { flex: 1 1 calc(50% - 0.44rem); }
+}
+@media (max-width: 900px) {
+    .kpiRow { flex-wrap: wrap; }
+    .kpiCard { flex: 1 1 calc(50% - 0.44rem); }
+    .dashboardRoot { padding: 0.75rem 1rem 1.5rem; }
+}
+@media (max-width: 600px) {
+    .kpiCard { flex: 1 1 100%; }
+    .bottomPanel { flex: 1 1 100%; }
+    .filterBar { flex-direction: column; align-items: stretch; }
+    .filterItem { min-width: 100%; }
+}

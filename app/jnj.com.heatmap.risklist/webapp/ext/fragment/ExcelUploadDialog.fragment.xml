@@ -1,0 +1,82 @@
+<core:FragmentDefinition
+	xmlns="sap.m"
+	xmlns:core="sap.ui.core"
+	xmlns:unified="sap.ui.unified">
+
+	<Dialog
+		id="excelUploadDialog"
+		title="Import Risks from Excel"
+		contentWidth="480px"
+		resizable="true"
+		draggable="true">
+
+		<content>
+			<VBox class="sapUiSmallMargin sapUiSmallMarginBottom">
+
+				<!-- Instructions -->
+				<MessageStrip
+					text="Upload an .xlsx or .xls file. Required columns: Risk ID, Risk Title, Owner, Workstream, Criticality, Complexity, Risk Severity, Status, Due Date."
+					type="Information"
+					showIcon="true"
+					class="sapUiSmallMarginBottom"/>
+
+				<!-- File Uploader -->
+				<Label text="Select Excel File" required="true" class="sapUiTinyMarginBottom"/>
+				<unified:FileUploader
+					id="dialogFileUploader"
+					name="heatmapExcel"
+					uploadUrl=""
+					placeholder="Choose .xlsx or .xls file..."
+					fileType="xlsx,xls"
+					mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+					maximumFileSize="10"
+					change=".onDialogFileChange"
+					typeMismatch=".onDialogFileTypeMismatch"
+					fileSizeExceed=".onDialogFileSizeExceed"
+					width="100%"
+					style="Emphasized"/>
+
+				<!-- Selected file name -->
+				<Text
+					id="dialogFileNameText"
+					text="{excelUpload>/selectedFileName}"
+					visible="{= !!${excelUpload>/selectedFileName} }"
+					class="sapUiTinyMarginTop"/>
+
+				<!-- Busy indicator during upload -->
+				<HBox
+					visible="{excelUpload>/uploading}"
+					alignItems="Center"
+					class="sapUiSmallMarginTop">
+					<core:Icon src="sap-icon://synchronize" class="sapUiTinyMarginEnd"/>
+					<Text text="Uploading, please wait..."/>
+				</HBox>
+
+				<!-- Result strip after upload -->
+				<MessageStrip
+					id="dialogResultStrip"
+					text="{excelUpload>/resultMessage}"
+					type="{excelUpload>/resultType}"
+					showIcon="true"
+					visible="{excelUpload>/resultVisible}"
+					class="sapUiSmallMarginTop"/>
+
+			</VBox>
+		</content>
+
+		<buttons>
+			<Button
+				id="dialogUploadBtn"
+				text="Upload"
+				type="Emphasized"
+				icon="sap-icon://upload"
+				press=".onDialogUpload"
+				enabled="{= ${excelUpload>/fileSelected} &amp;&amp; !${excelUpload>/uploading} }"/>
+			<Button
+				text="Close"
+				press=".onDialogClose"/>
+		</buttons>
+
+	</Dialog>
+
+</core:FragmentDefinition>

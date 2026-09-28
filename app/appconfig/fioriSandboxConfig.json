@@ -1,0 +1,81 @@
+{
+  "services": {
+    "ClientSideTargetResolution": {
+      "adapter": {
+        "config": {
+          "inbounds": {
+            "RiskHeatmap-display": {
+              "semanticObject": "RiskHeatmap",
+              "action": "display",
+              "title": "Risk Heatmap Dashboard",
+              "icon": "sap-icon://heat-stacked",
+              "info": "Interactive heatmap & KPI analytics",
+              "signature": {
+                "parameters": {},
+                "additionalParameters": "allowed"
+              },
+              "resolutionResult": {
+                "applicationType": "SAPUI5",
+                "additionalInformation": "SAPUI5.Component=jnj.com.heatmap.dashboard",
+                "url": "/jnj.com.heatmap.dashboard/webapp"
+              }
+            },
+            "RiskList-manage": {
+              "semanticObject": "RiskList",
+              "action": "manage",
+              "title": "Risk List",
+              "icon": "sap-icon://list",
+              "info": "Manage and review all risks",
+              "signature": {
+                "parameters": {},
+                "additionalParameters": "allowed"
+              },
+              "resolutionResult": {
+                "applicationType": "SAPUI5",
+                "additionalInformation": "SAPUI5.Component=jnj.com.heatmap.risklist",
+                "url": "/jnj.com.heatmap.risklist/webapp"
+              }
+            }
+          }
+        }
+      }
+    },
+    "LaunchPage": {
+      "adapter": {
+        "config": {
+          "groups": [
+            {
+              "id": "group_heatmap",
+              "title": "Risk Heatmap",
+              "isPreset": true,
+              "isVisible": true,
+              "isGroupLocked": false,
+              "tiles": [
+                {
+                  "id": "tile_dashboard",
+                  "tileType": "sap.ushell.ui.tile.StaticTile",
+                  "properties": {
+                    "title": "Risk Heatmap Dashboard",
+                    "subtitle": "Interactive heatmap & KPI analytics",
+                    "icon": "sap-icon://heat-stacked",
+                    "targetURL": "#RiskHeatmap-display"
+                  }
+                },
+                {
+                  "id": "tile_risklist",
+                  "tileType": "sap.ushell.ui.tile.StaticTile",
+                  "properties": {
+                    "title": "Risk List",
+                    "subtitle": "Manage and review all risks",
+                    "icon": "sap-icon://list",
+                    "targetURL": "#RiskList-manage"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}
