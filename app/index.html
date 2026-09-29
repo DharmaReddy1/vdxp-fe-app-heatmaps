@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Risk Heatmap - SAP Fiori Launchpad</title>
+
+  <style id="fullscreen-overrides">
+    /* ── Base reset ── */
+    html, body {
+      margin: 0 !important; padding: 0 !important;
+      width: 100% !important; height: 100% !important;
+      overflow-x: hidden !important;
+    }
+    /* Kill every max-width the shell or UI5 might impose */
+    * { max-width: none !important; box-sizing: border-box !important; }
+    /* Re-allow sensible max-width on form controls */
+    input, select, textarea, button { max-width: 100% !important; }
+
+    /* ── Every possible shell / nav / view wrapper ── */
+    #content, #content > *,
+    .sapUShellApplicationContainer, .sapUShellInnerShell,
+    .sapUShellCenterArea, .sapUShellContentDiv,
+    .sapUShellCanvasContainer, .sapUShellCanvasSplitContainer,
+    .sapUShellShellObj, .sapUShellShell, .sapUShellFullHeight,
+    .sapMNav, .sapMNavItem,
+    .sapMPage, .sapMPageScrollContainer, .sapMPageScroll,
+    .sapUiView, .sapUiComponentContainer, .sapUiComponent,
+    [data-sap-ui-component],
+    .sapUShellDashboardPage, .sapUShellGroupContainer,
+    /* sap.f.FlexibleColumnLayout and sap.f.Shell */
+    .sapFFlexibleColumnLayout, .sapFShell,
+    /* Generic: any direct child of body */
+    body > div, body > section {
+      width: 100% !important;
+      left: 0 !important; right: 0 !important;
+      padding-left: 0 !important; padding-right: 0 !important;
+      margin-left: 0 !important; margin-right: 0 !important;
+    }
+  </style>
+
+  <script>
+    window["sap-ushell-config"] = {
+      defaultRenderer: "fiori2",
+      bootstrapPlugins: {},
+      renderers: {
+        fiori2: {
+          componentData: {
+            config: {
+              sessionTimeoutReminderInMinutes: 5,
+              sessionTimeoutInMinutes: 30,
+              enablePersonalization: true,
+              enableRecentActivity: true,
+              enableSearch: false,
+              enableSetTheme: true,
+              enableSetLanguage: true,
+              rootIntent: "Shell-home",
+              enableDefaultGroups: false
+            }
+          }
+        }
+      },
+      services: {
+        "NavTargetResolution": {
+          "config": {
+            "runStandaloneAppFolderWhitelist": { "*": true },
+            "allowTestUrlComponentConfig": true,
+            "enableClientSideTargetResolution": true
+          }
+        },
+        "Container": {
+          "adapter": {
+            "config": {
+              "userProfile": {
+                "defaults": {
+                  "theme": "sap_horizon",
+                  "language": "en"
+                }
+              }
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!--
+    FLP sandbox script MUST be loaded before sap-ui-core.js so that it can
+    register itself as an "xx-bootTask" via window["sap-ui-config"].
+    It must have id="sap-ushell-bootstrap" so getBootstrapScriptPath() finds it.
+    Note: sandbox.js is deprecated since 1.136 - use sandbox2.js instead.
+  -->
+  <script
+    id="sap-ushell-bootstrap"
+    src="/resources/sap/ushell/bootstrap/sandbox2.js"
+  ></script>
+
+  <script
+    id="sap-ui-bootstrap"
+    src="/resources/sap-ui-core.js"
+    data-sap-ui-libs="sap.m,sap.f,sap.ui.core,sap.ui.layout,sap.ushell"
+    data-sap-ui-theme="sap_horizon"
+    data-sap-ui-frame-options="allow"
+    data-sap-ui-compat-version="edge"
+    data-sap-ui-async="true"
+    data-sap-ui-resource-roots='{"jnj.com.heatmap.dashboard":"/jnj.com.heatmap.dashboard/webapp","jnj.com.heatmap.risklist":"/jnj.com.heatmap.risklist/webapp","jnj.com.heatmap.upload":"/jnj.com.heatmap.upload/webapp"}'
+    data-sap-ui-on-init="onInit"
+  ></script>
+
+  <script>
+    // Called by UI5 once the core is ready AND the sandbox boot task has finished
+    // initializing sap.ushell.Container. At this point we can create the FLP
+    // renderer and place it in the page.
+    function onInit() {
+      sap.ui.require(["sap/ushell/Container"], function (Container) {
+        Container.createRenderer(/* uses default renderer from sap-ushell-config */)
+                 .placeAt("content");
+      });
+    }
+
+    // After shell renders, force every wrapper to full width by removing
+    // any inline max-width / width constraints added by the FLP shell JS.
+    (function forceFullWidth() {
+      var selectors = [
+        ".sapUShellApplicationContainer", ".sapUShellInnerShell",
+        ".sapUShellCenterArea", ".sapUShellContentDiv",
+        ".sapUShellCanvasContainer", ".sapUShellCanvasSplitContainer",
+        ".sapUShellShellObj", ".sapUShellShell", ".sapUShellFullHeight",
+        ".sapMNav", ".sapMNavItem",
+        ".sapMPage", ".sapMPageScrollContainer", ".sapMPageScroll",
+        ".sapUiView", ".sapUiComponentContainer", ".sapUiComponent",
+        ".sapFFlexibleColumnLayout", ".sapFShell"
+      ];
+
+      function applyFull() {
+        selectors.forEach(function(sel) {
+          document.querySelectorAll(sel).forEach(function(el) {
+            el.style.setProperty("width", "100%", "important");
+            el.style.setProperty("max-width", "none", "important");
+            el.style.setProperty("margin-left", "0", "important");
+            el.style.setProperty("margin-right", "0", "important");
+            el.style.setProperty("padding-left", "0", "important");
+            el.style.setProperty("padding-right", "0", "important");
+            el.style.setProperty("left", "0", "important");
+            el.style.setProperty("right", "0", "important");
+          });
+        });
+      }
+
+      // Run once DOM is ready, then watch for shell elements being added
+      document.addEventListener("DOMContentLoaded", applyFull);
+      var observer = new MutationObserver(applyFull);
+      observer.observe(document.body || document.documentElement, {
+        childList: true, subtree: true
+      });
+      // Also run after a short delay to catch async shell rendering
+      setTimeout(applyFull, 500);
+      setTimeout(applyFull, 1500);
+      setTimeout(applyFull, 3000);
+    })();
+  </script>
+</head>
+<body class="sapUiBody" id="content">
+</body>
+</html>

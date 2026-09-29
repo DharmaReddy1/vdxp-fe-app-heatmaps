@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate" />
+		<meta http-equiv="Pragma" content="no-cache" />
+		<meta http-equiv="expires" content="0" />
+		<meta charset="utf-8" />
+
+		<title>Risk Management - Heatmap</title>
+
+		<style>
+			html, body, body > div, #container, #container-uiarea {
+				height: 100%;
+			}
+		</style>
+
+		<script
+			id="sap-ui-bootstrap"
+			src="https://ui5.sap.com/1.152.0/resources/sap-ui-core.js"
+			data-sap-ui-theme="sap_horizon"
+			data-sap-ui-resource-roots='{
+				"jnj.com.heatmap.risklist": "./"
+			}'
+			data-sap-ui-on-init="module:sap/ui/core/ComponentSupport"
+			data-sap-ui-compat-version="edge"
+			data-sap-ui-frame-options="allow"
+			data-sap-ui-async="true"
+			data-sap-ui-flex-use-static-flexibility="true"
+			data-sap-ui-flexibility-services='[{"connector":"LocalStorageConnector"}]'
+			data-sap-ui-xx-no-flp-telemetry="true"
+		></script>
+	</head>
+
+	<body class="sapUiBody sapUiSizeCompact" id="content">
+		<div
+			data-sap-ui-component
+			data-name="jnj.com.heatmap.risklist"
+			data-id="container"
+			data-settings='{"id": "jnj.com.heatmap.risklist"}'
+			data-handle-validation="true"
+		></div>
+	</body>
+</html>

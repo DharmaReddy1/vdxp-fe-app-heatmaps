@@ -1,0 +1,22 @@
+<!-- NOTE: This view is NOT used by the Fiori Elements List Report.
+     The app uses sap.fe.templates.ListReport via manifest routing (target: RiskList).
+     The rootView is App.view.xml which hosts the sap.m.App shell.
+     URL startup filter parameters (complexity, riskSeverity, criticality, status)
+     are handled in Component.js init() and passed to the FE router. -->
+<mvc:View
+	controllerName="jnj.com.heatmap.risklist.controller.Main"
+	displayBlock="true"
+	xmlns="sap.m"
+	xmlns:mvc="sap.ui.core.mvc">
+
+	<Page title="{i18n>appTitle}" showNavButton="false">
+		<content>
+			<MessagePage
+				text="Loading Risk List..."
+				description="Please wait while the application initializes."
+				icon="sap-icon://list"
+				showHeader="false"/>
+		</content>
+	</Page>
+
+</mvc:View>

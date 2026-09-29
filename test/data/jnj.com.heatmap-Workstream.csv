@@ -1,0 +1,6 @@
+ID,name,description,createdAt,createdBy,modifiedAt,modifiedBy
+550e8400-e29b-41d4-a716-446655440010,Order to Cash,End-to-end order to cash process management,2026-01-01T00:00:00Z,system,2026-01-01T00:00:00Z,system
+550e8400-e29b-41d4-a716-446655440011,Procure to Pay,Procurement and supplier payment processes,2026-01-01T00:00:00Z,system,2026-01-01T00:00:00Z,system
+550e8400-e29b-41d4-a716-446655440012,Record to Report,Financial reporting and close processes,2026-01-01T00:00:00Z,system,2026-01-01T00:00:00Z,system
+550e8400-e29b-41d4-a716-446655440013,Plan to Produce,Production planning and manufacturing execution,2026-01-01T00:00:00Z,system,2026-01-01T00:00:00Z,system
+550e8400-e29b-41d4-a716-446655440014,Integration,System integration and interface monitoring,2026-01-01T00:00:00Z,system,2026-01-01T00:00:00Z,system
