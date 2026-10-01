@@ -63,6 +63,8 @@ sap.ui.define([
 		onDialogUpload: function () {
 			const oFileUploader = Fragment.byId(this.base.getView().getId(), "dialogFileUploader");
 			const oFile = oFileUploader && oFileUploader.oFileUpload && oFileUploader.oFileUpload.files[0];
+			const oReplaceExisting = Fragment.byId(this.base.getView().getId(), "replaceExistingCheck");
+			const bReplaceExisting = !!(oReplaceExisting && oReplaceExisting.getSelected());
 
 			if (!oFile) {
 				MessageBox.error("Please select a file first.");
@@ -76,7 +78,7 @@ sap.ui.define([
 			const oReader = new FileReader();
 			oReader.onload = (oEvent) => {
 				const sBase64 = oEvent.target.result.split(",")[1];
-				this._callUploadAction(sBase64, oFile.name);
+				this._callUploadAction(sBase64, oFile.name, bReplaceExisting);
 			};
 			oReader.onerror = () => {
 				oModel.setProperty("/uploading", false);
@@ -85,13 +87,14 @@ sap.ui.define([
 			oReader.readAsDataURL(oFile);
 		},
 
-		_callUploadAction: function (sBase64Content, sFileName) {
+		_callUploadAction: function (sBase64Content, sFileName, bReplaceExisting) {
 			const oODataModel = this.base.getView().getModel();
 			const oUploadModel = this.base.getView().getModel("excelUpload");
 
 			const oActionBinding = oODataModel.bindContext("/uploadExcel(...)");
 			oActionBinding.setParameter("fileContent", sBase64Content);
 			oActionBinding.setParameter("fileName", sFileName);
+			oActionBinding.setParameter("replaceExisting", bReplaceExisting);
 
 			oActionBinding.execute().then(() => {
 				const oResult = oActionBinding.getBoundContext().getObject();
@@ -103,14 +106,14 @@ sap.ui.define([
 					oUploadModel.setProperty("/resultType", bSuccess ? "Success" : "Error");
 					oUploadModel.setProperty("/resultMessage",
 						bSuccess
-							? `Successfully imported ${oResult.recordCount || 0} risk(s) from "${sFileName}".`
+							? `${bReplaceExisting ? "Replaced existing risk records and imported" : "Successfully imported"} ${oResult.recordCount || 0} risk(s) from "${sFileName}".`
 							: `Upload failed: ${oResult.message || "Unknown error"}`
 					);
 
 					if (bSuccess) {
 						// Refresh the list so new rows appear immediately
 						oODataModel.refresh();
-						MessageToast.show(`${oResult.recordCount || 0} risk(s) imported successfully.`);
+						MessageToast.show(`${oResult.recordCount || 0} risk(s) ${bReplaceExisting ? "replaced" : "imported"} successfully.`);
 					}
 				} else {
 					oUploadModel.setProperty("/resultType", "Success");
@@ -153,6 +156,7 @@ sap.ui.define([
 				oModel.setData({
 					fileSelected: false,
 					selectedFileName: "",
+					replaceExisting: false,
 					uploading: false,
 					resultVisible: false,
 					resultMessage: "",

@@ -21,6 +21,11 @@
   },
   "private": true,
   "cds": {
+    "server": {
+      "body_parser": {
+        "limit": "10mb"
+      }
+    },
     "requires": {
       "auth": "dummy",
       "[production]": {

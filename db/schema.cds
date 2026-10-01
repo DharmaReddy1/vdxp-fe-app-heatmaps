@@ -53,6 +53,49 @@ entity Risk : cuid, managed {
     confluenceSpace     : String(100);           // ConfluenceSpace
     truVaultProjectId   : String(50);            // TruVaultProjectID
     isActive            : String(5);             // IsActive (Yes | No)
+    // RICEF operational readiness tracker columns
+    epicJiraId          : String(50);
+    processFunction     : String(100);
+    scrumTeam           : String(100);
+    ricefwType          : String(100);
+    ricefw              : String(50);
+    wricefName          : String(255);
+    commonObjects       : String(500);
+    newModifyExtend     : String(100);
+    priority            : String(20);
+    fdOwnerNameKtPoc    : String(150);
+    release             : String(20);
+    objectType          : String(100);
+    ktSessionId         : String(100);
+    ktDate              : Date;
+    criticalityScore    : Integer;
+    complexityScore     : Integer;
+    tier1Override       : String(5);
+    riskScore           : Integer;
+    riskBand            : String(20);
+    tier                : String(20);
+    p1Monitoring        : Decimal(3, 1);
+    p2ExceptionHandling : Decimal(3, 1);
+    p3Supportability    : Decimal(3, 1);
+    p4KnowledgeReadiness: Decimal(3, 1);
+    p5PreventionRecovery: Decimal(3, 1);
+    p6SecurityAccess    : Decimal(3, 1);
+    readinessAverage    : Decimal(3, 1);
+    lowestPillar         : Decimal(3, 1);
+    weakestLinkCap       : String(5);
+    readinessBand        : String(20);
+    heatMapStatus        : String(50);
+    action               : String(1000);
+    projectOwner         : String(150);
+    gapStatus            : String(30);
+    amsScorer            : String(150);
+    amsScoredOn          : Date;
+    projectResponseDue   : Date;
+    projectStatus        : String(30);
+    effectiveProjectStatus: String(30);
+    tpoConfirmed         : String(5);
+    tpoConfirmedOn       : Date;
+    rescoreDate          : Date;
     // ─────────────────────────────────────────────────────────────────────────
     mitigationPlans     : Composition of many MitigationPlan on mitigationPlans.risk = $self;
     actionTrackers      : Composition of many ActionTracker  on actionTrackers.risk  = $self;
@@ -90,16 +133,12 @@ entity HeatmapCategory : cuid {
 // ─── CDS View: Heatmap Summary (Country x Process) ───────────────────────────
 entity HeatmapSummaryView as
     select from Risk {
-        key country      : String(100),
-        key process      : String(200),
-            count(*) as count            : Integer,
-            // dominant criticality (highest) for color coding
-            sum(case criticality when 'High'   then 1 else 0 end)   as highCount   : Integer,
-            sum(case criticality when 'Medium' then 1 else 0 end)   as mediumCount : Integer,
-            sum(case criticality when 'Low'    then 1 else 0 end)   as lowCount    : Integer,
-            sum(case criticality when 'Normal' then 1 else 0 end)   as normalCount : Integer
+        key riskBand      : String(20),
+        key readinessBand : String(20),
+            count(*) as count : Integer
     }
-    group by country, process;
+    where riskBand is not null and readinessBand is not null
+    group by riskBand, readinessBand;
 
 // ─── CDS View: Heatmap by Complexity x RiskSeverity ──────────────────────────
 entity HeatmapComplexityView as
@@ -142,6 +181,9 @@ entity TopRiskAreasView as
             process,
             criticality,
             status,
+            riskBand,
+            readinessBand,
+            heatMapStatus,
             createdAt
     }
     where status != 'Closed'

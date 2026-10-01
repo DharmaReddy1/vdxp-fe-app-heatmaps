@@ -5,7 +5,7 @@
 
 	<Dialog
 		id="excelUploadDialog"
-		title="Import Risks from Excel"
+		title="Import RICEFW Tracker"
 		contentWidth="480px"
 		resizable="true"
 		draggable="true">
@@ -15,7 +15,7 @@
 
 				<!-- Instructions -->
 				<MessageStrip
-					text="Upload an .xlsx or .xls file. Required columns: Risk ID, Risk Title, Owner, Workstream, Criticality, Complexity, Risk Severity, Status, Due Date."
+					text="Upload the readiness tracker workbook. The app imports the Tracker sheet and calculates risk scores, tiers, readiness bands, heat map status, and project response dates."
 					type="Information"
 					showIcon="true"
 					class="sapUiSmallMarginBottom"/>
@@ -41,6 +41,18 @@
 					id="dialogFileNameText"
 					text="{excelUpload>/selectedFileName}"
 					visible="{= !!${excelUpload>/selectedFileName} }"
+					class="sapUiTinyMarginTop"/>
+
+				<CheckBox
+					id="replaceExistingCheck"
+					text="Replace existing risk records"
+					selected="{excelUpload>/replaceExisting}"
+					class="sapUiSmallMarginTop"/>
+				<MessageStrip
+					text="This removes existing risks and related mitigation/action rows before importing the Tracker sheet. Replacement is disabled in production."
+					type="Warning"
+					showIcon="true"
+					visible="{excelUpload>/replaceExisting}"
 					class="sapUiTinyMarginTop"/>
 
 				<!-- Busy indicator during upload -->

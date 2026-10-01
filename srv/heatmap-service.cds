@@ -39,18 +39,17 @@ service HeatmapService @(path: '/heatmap') {
 
     action uploadExcel(
         fileContent : LargeString,
-        fileName    : String(255)
+        fileName    : String(255),
+        replaceExisting : Boolean
     ) returns UploadBatch;
 
     function getDashboardKPIs() returns {
-        totalRisks      : Integer;
-        highSeverity    : Integer;
-        openIncidents   : Integer;
-        onTrackPct      : Integer;
-        totalTrend      : Integer;
-        highTrend       : Integer;
-        openTrend       : Integer;
-        onTrackTrend    : Integer;
+        totalRICEFs         : Integer;
+        tier1Objects        : Integer;
+        immediateAction     : Integer;
+        mitigationRequired  : Integer;
+        monitor             : Integer;
+        controlled          : Integer;
         lastRefreshed   : String;
     };
 

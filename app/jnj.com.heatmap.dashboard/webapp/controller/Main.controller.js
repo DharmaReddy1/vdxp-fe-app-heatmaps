@@ -24,6 +24,11 @@ sap.ui.define([
 		"Critical": "#7B1FA2",
 		"":         "#EEEEEE"
 	};
+	var HEATMAP_BAND_COLORS = {
+		"Critical / High": COLOR_MAP["High"],
+		"Moderate": COLOR_MAP["Medium"],
+		"Low": COLOR_MAP["Normal"]
+	};
 
 	return BaseController.extend("jnj.com.heatmap.dashboard.controller.Main", {
 		onAfterRendering: function () {
@@ -43,14 +48,12 @@ sap.ui.define([
 			var oDashModel = new JSONModel({
 				greeting: greeting,
 				lastRefreshed: "Refreshing...",
-				totalRisks: "--",
-				highSeverity: "--",
-				openIncidents: "--",
-				onTrackPct: "--",
-				totalTrend: 0,
-				highTrend: 0,
-				openTrend: 0,
-				onTrackTrend: 0,
+				totalRICEFs: "--",
+				tier1Objects: "--",
+				immediateAction: "--",
+				mitigationRequired: "--",
+				monitor: "--",
+				controlled: "--",
 				heatmapLoading: true,
 				filtersActive: false,
 				activeFilterCount: 0
@@ -58,7 +61,7 @@ sap.ui.define([
 			this.getView().setModel(oDashModel, "dashboard");
 
 			// Heatmap state
-			this._heatmapMode = "process"; // "process" or "country"
+			this._heatmapMode = "riskBand";
 			this._activeFilters = {};
 
 			// Load after render
@@ -73,7 +76,7 @@ sap.ui.define([
 			this._loadTopRisks();
 			this._loadInvestigationQueue();
 			this._loadRiskDistribution();
-			// this._loadComplexityProfile();
+			this._loadComplexityProfile();
 			// this._loadRiskDistribution();
 		},
 
@@ -99,14 +102,12 @@ sap.ui.define([
 				oDash.setProperty("/lastRefreshed",
 					"Last refreshed: " + pad(now.getDate()) + " " + months[now.getMonth()] +
 					" " + now.getFullYear() + ", " + pad(h12) + ":" + pad(now.getMinutes()) + " " + ampm);
-				oDash.setProperty("/totalRisks",    o.totalRisks    || 0);
-				oDash.setProperty("/highSeverity",  o.highSeverity  || 0);
-				oDash.setProperty("/openIncidents", o.openIncidents || 0);
-				oDash.setProperty("/onTrackPct",    o.onTrackPct    || 0);
-				oDash.setProperty("/totalTrend",    o.totalTrend    || 0);
-				oDash.setProperty("/highTrend",     o.highTrend     || 0);
-				oDash.setProperty("/openTrend",     o.openTrend     || 0);
-				oDash.setProperty("/onTrackTrend",  o.onTrackTrend  || 0);
+				oDash.setProperty("/totalRICEFs",        o.totalRICEFs        || 0);
+				oDash.setProperty("/tier1Objects",       o.tier1Objects       || 0);
+				oDash.setProperty("/immediateAction",    o.immediateAction    || 0);
+				oDash.setProperty("/mitigationRequired", o.mitigationRequired || 0);
+				oDash.setProperty("/monitor",            o.monitor            || 0);
+				oDash.setProperty("/controlled",         o.controlled         || 0);
 			}.bind(this)).catch(function (e) {
 				console.error("KPI load failed:", e);
 				this._loadKPIsFallback();
@@ -120,11 +121,12 @@ sap.ui.define([
 			oList.requestContexts(0, 9999).then(function (aCtx) {
 				var aRisks = aCtx.map(function(c){ return c.getObject(); });
 				var oDash = this.getView().getModel("dashboard");
-				oDash.setProperty("/totalRisks",    aRisks.length);
-				oDash.setProperty("/highSeverity",  aRisks.filter(function(r){ return r.criticality === "High"; }).length);
-				oDash.setProperty("/openIncidents", aRisks.filter(function(r){ return r.status === "Open"; }).length);
-				var resolved = aRisks.filter(function(r){ return r.status === "Mitigated" || r.status === "Closed"; }).length;
-				oDash.setProperty("/onTrackPct", aRisks.length > 0 ? Math.round(resolved / aRisks.length * 100) : 0);
+				oDash.setProperty("/totalRICEFs", aRisks.length);
+				oDash.setProperty("/tier1Objects", aRisks.filter(function(r){ return r.tier === "Tier 1"; }).length);
+				oDash.setProperty("/immediateAction", aRisks.filter(function(r){ return r.heatMapStatus === "Immediate action"; }).length);
+				oDash.setProperty("/mitigationRequired", aRisks.filter(function(r){ return r.heatMapStatus === "Mitigation required"; }).length);
+				oDash.setProperty("/monitor", aRisks.filter(function(r){ return r.heatMapStatus === "Monitor"; }).length);
+				oDash.setProperty("/controlled", aRisks.filter(function(r){ return r.heatMapStatus === "Controlled"; }).length);
 			}.bind(this)).catch(function(e){ console.error("Fallback KPI failed:", e); });
 		},
 
@@ -164,19 +166,13 @@ sap.ui.define([
 				// Aggregate client-side
 				var agg = {};
 				aRisks.forEach(function(r) {
-					var country = r.country || "(blank)";
-					var process = r.process || "(blank)";
-					var key = country + "|||" + process;
+					if (!r.riskBand || !r.readinessBand) { return; }
+					var riskBand = r.riskBand === "Critical" || r.riskBand === "High" ? "Critical / High" : r.riskBand;
+					var key = riskBand + "|||" + r.readinessBand;
 					if (!agg[key]) {
-						agg[key] = { country: country, process: process, count: 0,
-							highCount: 0, mediumCount: 0, lowCount: 0, normalCount: 0, criticalCount: 0 };
+						agg[key] = { riskBand: riskBand, readinessBand: r.readinessBand, count: 0 };
 					}
 					agg[key].count++;
-					if (r.criticality === "High")     { agg[key].highCount++; }
-					if (r.criticality === "Medium")   { agg[key].mediumCount++; }
-					if (r.criticality === "Low")      { agg[key].lowCount++; }
-					if (r.criticality === "Normal")   { agg[key].normalCount++; }
-					if (r.criticality === "Critical") { agg[key].criticalCount++; }
 				});
 				this._renderHeatmapTable(Object.values(agg));
 			}.bind(this)).catch(function(e){ console.error("Heatmap fallback failed:", e); });
@@ -187,8 +183,8 @@ sap.ui.define([
 			if (!oContainer) { return; }
 
 			var mode = this._heatmapMode;
-			var rowKey = (mode === "process") ? "country" : "process";
-			var colKey = (mode === "process") ? "process" : "country";
+			var rowKey = mode === "riskBand" ? "riskBand" : "readinessBand";
+			var colKey = mode === "riskBand" ? "readinessBand" : "riskBand";
 
 			if (!aData || aData.length === 0) {
 				oContainer.innerHTML = '<div class="heatmapNoData">' +
@@ -198,8 +194,18 @@ sap.ui.define([
 					'</div>';
 				return;
 			}
+			var groupedData = {};
+			aData.forEach(function(d) {
+				var riskBand = d.riskBand === "Critical" || d.riskBand === "High" ? "Critical / High" : d.riskBand;
+				var key = riskBand + "|||" + d.readinessBand;
+				if (!groupedData[key]) {
+					groupedData[key] = { riskBand: riskBand, readinessBand: d.readinessBand, count: 0 };
+				}
+				groupedData[key].count += d.count || 0;
+			});
+			aData = Object.values(groupedData);
 
-			// Collect unique rows/cols — sort alphabetically
+			// Collect unique bands and sort them in the workbook's business order.
 			var rowSet = [], colSet = [], rowIndex = {}, colIndex = {};
 			aData.forEach(function(d) {
 				var r = d[rowKey] || "(blank)";
@@ -207,7 +213,16 @@ sap.ui.define([
 				if (rowIndex[r] === undefined) { rowIndex[r] = rowSet.length; rowSet.push(r); }
 				if (colIndex[c] === undefined) { colIndex[c] = colSet.length; colSet.push(c); }
 			});
-			rowSet.sort(); colSet.sort();
+			var riskBandOrder = { "Critical / High": 0, "Moderate": 1, "Low": 2 };
+			var readinessBandOrder = { "Low": 0, "Medium": 1, "High": 2 };
+			var rowOrder = mode === "riskBand" ? riskBandOrder : readinessBandOrder;
+			var colOrder = mode === "riskBand" ? readinessBandOrder : riskBandOrder;
+			rowSet.sort(function(a, b) {
+				return (rowOrder[a] === undefined ? 99 : rowOrder[a]) - (rowOrder[b] === undefined ? 99 : rowOrder[b]);
+			});
+			colSet.sort(function(a, b) {
+				return (colOrder[a] === undefined ? 99 : colOrder[a]) - (colOrder[b] === undefined ? 99 : colOrder[b]);
+			});
 
 			// Build lookup: row -> col -> cell data
 			var lookup = {};
@@ -216,36 +231,20 @@ sap.ui.define([
 				var c = d[colKey] || "(blank)";
 				if (!lookup[r]) { lookup[r] = {}; }
 				lookup[r][c] = {
-					count:        d.count        || 0,
-					highCount:    d.highCount    || 0,
-					mediumCount:  d.mediumCount  || 0,
-					lowCount:     d.lowCount     || 0,
-					normalCount:  d.normalCount  || 0,
-					criticalCount:d.criticalCount|| 0
+					count: d.count || 0,
+					riskBand: d.riskBand,
+					readinessBand: d.readinessBand
 				};
 			});
 
-			// Determine dominant criticality color
 			var getDominant = function(cell) {
-				if (!cell || cell.count === 0) { return null; }
-				if ((cell.criticalCount || 0) > 0) { return "Critical"; }
-				if (cell.highCount   > 0) { return "High"; }
-				if (cell.mediumCount > 0) { return "Medium"; }
-				if (cell.lowCount    > 0) { return "Low"; }
-				if (cell.normalCount > 0) { return "Normal"; }
-				return null;
+				return cell && cell.count > 0 ? cell.riskBand : null;
 			};
 
 			// Build tooltip text
 			var getTooltip = function(cell, row, col) {
-				if (!cell || cell.count === 0) { return row + " × " + col + ": No risks"; }
-				var parts = [row + " × " + col, "Total: " + cell.count];
-				if (cell.criticalCount) { parts.push("Critical: " + cell.criticalCount); }
-				if (cell.highCount)     { parts.push("High: "     + cell.highCount); }
-				if (cell.mediumCount)   { parts.push("Medium: "   + cell.mediumCount); }
-				if (cell.lowCount)      { parts.push("Low: "      + cell.lowCount); }
-				if (cell.normalCount)   { parts.push("Normal: "   + cell.normalCount); }
-				return parts.join(" | ");
+				if (!cell || cell.count === 0) { return row + " × " + col + ": No RICEFWs"; }
+				return row + " × " + col + " | RICEFWs: " + cell.count;
 			};
 
 			// Compute max count for intensity scaling
@@ -253,7 +252,7 @@ sap.ui.define([
 			aData.forEach(function(d){ if ((d.count || 0) > maxCount) { maxCount = d.count; } });
 
 			// Build HTML table
-			var colHeaderLabel = (mode === "process") ? "Country \\ Process" : "Process \\ Country";
+			var colHeaderLabel = mode === "riskBand" ? "Risk Band \\ Readiness Band" : "Readiness Band \\ Risk Band";
 			var html = '<div class="heatmapScrollWrapper"><table class="heatmapTable">' +
 				'<thead><tr><th class="heatmapCornerHeader">' + colHeaderLabel + '</th>';
 			colSet.forEach(function(c) {
@@ -269,8 +268,8 @@ sap.ui.define([
 					var cell = (lookup[r] && lookup[r][c]) ? lookup[r][c] : null;
 					var count = cell ? cell.count : 0;
 					var dominant = getDominant(cell);
-					var color = dominant ? COLOR_MAP[dominant] : "#F0F2F5";
-					var textColor = (color === COLOR_MAP["Low"]) ? "#5D4037" : (dominant ? "#fff" : "#9CA3AF");
+					var color = dominant ? HEATMAP_BAND_COLORS[dominant] : "#F0F2F5";
+					var textColor = dominant ? "#fff" : "#9CA3AF";
 					var intensity = count > 0 ? Math.max(0.55, Math.min(1, 0.55 + (count / maxCount) * 0.45)) : 1;
 					var tooltip = _escapeHtml(getTooltip(cell, r, c));
 					var clickable = count > 0 ? ' data-row="' + _escapeHtml(r) + '" data-col="' + _escapeHtml(c) + '" data-mode="' + mode + '"' : '';
@@ -280,7 +279,8 @@ sap.ui.define([
 					if (count > 0) {
 						html += '<span class="heatmapCellCount">' + count + '</span>';
 						if (dominant) {
-							html += '<span class="heatmapCellBadge heatmapBadge' + dominant + '">' + dominant[0] + '</span>';
+							var badgeBand = dominant === "Moderate" ? "Medium" : dominant === "Critical / High" ? "High" : dominant;
+							html += '<span class="heatmapCellBadge heatmapBadge' + badgeBand + '">' + dominant[0] + '</span>';
 						}
 					} else {
 						html += '<span class="heatmapCellDash">—</span>';
@@ -306,22 +306,22 @@ sap.ui.define([
 		},
 
 		_onHeatmapCellClick: function (sRow, sCol, sMode) {
-			// Apply the clicked cell as a filter
-			var country = sMode === "process" ? sRow : sCol;
-			var process = sMode === "process" ? sCol : sRow;
-			this._activeFilters.country = country === "(blank)" ? "" : country;
-			this._activeFilters.process = process === "(blank)" ? "" : process;
+			var riskBand = sMode === "riskBand" ? sRow : sCol;
+			var readinessBand = sMode === "riskBand" ? sCol : sRow;
+			this._activeFilters.riskBand = riskBand;
+			this._activeFilters.readinessBand = readinessBand;
 
-			// Sync filter selects
-			var oCountry = this.byId("countryFilter");
-			var oProcess = this.byId("processFilter");
-			if (oCountry) { oCountry.setSelectedKey(this._activeFilters.country); }
-			if (oProcess) { oProcess.setSelectedKey(this._activeFilters.process); }
+			var oRiskBand = this.byId("riskBandFilter");
+			var oReadinessBand = this.byId("readinessBandFilter");
+			if (oRiskBand) { oRiskBand.setSelectedKey(riskBand); }
+			if (oReadinessBand) { oReadinessBand.setSelectedKey(readinessBand); }
 
 			this._updateFilterBadge();
 			this._loadHeatmap();
 			this._loadTopRisks();
-			MessageToast.show("Filtered: " + sRow + " × " + sCol);
+			this._loadRiskDistribution();
+			this._loadComplexityProfile();
+			MessageToast.show("Filtered: " + riskBand + " risk / " + readinessBand + " readiness");
 		},
 
 		onHeatmapToggle: function (oEvent) {
@@ -506,11 +506,14 @@ sap.ui.define([
 
 			var oViz = this.byId("donutViz");
 
-			if (!oViz) {
-				return;
-			}
+				if (!oViz) { return; }
 
-			oViz.setVizProperties({
+				if (!this._donutPropertiesApplied) {
+					this._donutPropertiesApplied = true;
+					oViz.setVizProperties({
+				tooltip: {
+					visible: true
+				},
 				title: {
 					visible: false
 				},
@@ -529,6 +532,28 @@ sap.ui.define([
 				legend: {
 					visible: false
 				}
+				});
+			}
+
+			var aData = this._distributionData || [];
+			var total = aData.reduce(function(sum, item) { return sum + (item.count || 0); }, 0);
+			var oChartDom = oViz.getDomRef();
+			if (!oChartDom) { return; }
+			Array.prototype.forEach.call(oChartDom.querySelectorAll("svg path[fill]"), function(oSlice) {
+				var sFill = (oSlice.getAttribute("fill") || "").toLowerCase();
+				var oDatum = aData.find(function(item) {
+					var sColor = COLOR_MAP[item.criticality];
+					return sColor && sColor.toLowerCase() === sFill;
+				});
+				if (!oDatum) { return; }
+
+				var oTitle = oSlice.querySelector("title");
+				if (!oTitle) {
+					oTitle = document.createElementNS("http://www.w3.org/2000/svg", "title");
+					oSlice.insertBefore(oTitle, oSlice.firstChild);
+				}
+				var percentage = total > 0 ? Math.round(oDatum.count / total * 100) : 0;
+				oTitle.textContent = oDatum.criticality + ": " + oDatum.count + " (" + percentage + "%)";
 			});
 		},
 
@@ -578,7 +603,7 @@ sap.ui.define([
 		_renderComplexityBars: function (aData) {
 			var oBars = this.byId("complexityBars");
 			if (!oBars) { return; }
-			oBars.removeAllItems();
+			oBars.destroyItems();
 			var max = aData.reduce(function(m, d){ return Math.max(m, d.count || 0); }, 1);
 			var colorOrder = { "High": COLOR_MAP["High"], "Medium": COLOR_MAP["Medium"], "Low": COLOR_MAP["Low"], "Normal": COLOR_MAP["Normal"] };
 			// Sort by defined order
@@ -588,10 +613,10 @@ sap.ui.define([
 				var color = colorOrder[d.complexity] || "#90CAF9";
 				var oRow = new HBox({ alignItems: "Center" }).addStyleClass("complexityRow");
 				var oLabel = new Text({ text: d.complexity || "Unknown", wrapping: false }).addStyleClass("complexityLabel");
-				var oBarWrap = new HBox().addStyleClass("complexityBarWrap");
-				// Use HTML for the bar
+				var oBarWrap = new HBox({ renderType: "Bare" }).addStyleClass("complexityBarWrap");
+				// HTML has no width property; size its root element explicitly.
 				var oBarContainer = new HTML({ content:
-					'<div class="complexityBar" style="width:' + pct + '%;background:' + color + ';"></div>'
+					'<div class="complexityBarContent"><div class="complexityBar" style="width:' + pct + '%;background:' + color + ';"></div></div>'
 				});
 				oBarWrap.addItem(oBarContainer);
 				var oCount = new Text({ text: String(d.count || 0) }).addStyleClass("complexityCount");
@@ -610,9 +635,9 @@ sap.ui.define([
 			oCtx.execute().then(function () {
 				var o = oCtx.getBoundContext().getObject();
 				if (!o) { return; }
-				this._populateSelect("countryFilter",      o.countries || [],      "All Countries");
-				this._populateSelect("processFilter",      o.processes || [],      "All Processes");
-				this._populateSelect("riskCategoryFilter", o.riskCategories || [], "All");
+				this._populateSelect("countryFilter",      o.countries || [],      "All Releases");
+				this._populateSelect("processFilter",      o.processes || [],      "All Process Functions");
+				this._populateSelect("riskCategoryFilter", o.riskCategories || [], "All RICEFW Types");
 			}.bind(this)).catch(function(e){ console.error("Filter options failed:", e); });
 		},
 
@@ -643,9 +668,10 @@ sap.ui.define([
 			this._activeFilters = {
 				country:      this.byId("countryFilter")      ? this.byId("countryFilter").getSelectedKey()      : "",
 				process:      this.byId("processFilter")      ? this.byId("processFilter").getSelectedKey()      : "",
-				criticality:  this.byId("criticalityFilter")  ? this.byId("criticalityFilter").getSelectedKey()  : "",
 				complexity:   this.byId("complexityFilter")   ? this.byId("complexityFilter").getSelectedKey()   : "",
-				riskCategory: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : ""
+				riskCategory: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : "",
+				riskBand: this.byId("riskBandFilter") ? this.byId("riskBandFilter").getSelectedKey() : "",
+				readinessBand: this.byId("readinessBandFilter") ? this.byId("readinessBandFilter").getSelectedKey() : ""
 			};
 			this._updateFilterBadge();
 			this._loadHeatmap();
@@ -669,14 +695,25 @@ sap.ui.define([
 			var f = this._activeFilters || {};
 			if (f.country)      { aFilters.push(new Filter("country",      FilterOperator.EQ, f.country)); }
 			if (f.process)      { aFilters.push(new Filter("process",      FilterOperator.EQ, f.process)); }
-			if (f.criticality)  { aFilters.push(new Filter("criticality",  FilterOperator.EQ, f.criticality)); }
 			if (f.complexity)   { aFilters.push(new Filter("complexity",   FilterOperator.EQ, f.complexity)); }
 			if (f.riskCategory) { aFilters.push(new Filter("riskCategory", FilterOperator.EQ, f.riskCategory)); }
+			if (f.riskBand === "Critical / High") {
+				aFilters.push(new Filter({
+					filters: [
+						new Filter("riskBand", FilterOperator.EQ, "Critical"),
+						new Filter("riskBand", FilterOperator.EQ, "High")
+					],
+					and: false
+				}));
+			} else if (f.riskBand) {
+				aFilters.push(new Filter("riskBand", FilterOperator.EQ, f.riskBand));
+			}
+			if (f.readinessBand) { aFilters.push(new Filter("readinessBand", FilterOperator.EQ, f.readinessBand)); }
 			return aFilters;
 		},
 
 		onResetFilters: function () {
-			["countryFilter","processFilter","criticalityFilter","complexityFilter","riskCategoryFilter"].forEach(function(sId) {
+			["countryFilter","processFilter","complexityFilter","riskCategoryFilter","riskBandFilter","readinessBandFilter"].forEach(function(sId) {
 				var oCtrl = this.byId(sId);
 				if (oCtrl) { oCtrl.setSelectedKey(""); }
 			}.bind(this));

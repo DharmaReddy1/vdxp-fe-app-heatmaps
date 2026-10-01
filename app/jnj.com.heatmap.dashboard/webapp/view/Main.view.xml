@@ -51,65 +51,53 @@
 
 				<!-- ═══ KPI TILES ROW ════════════════════════════════════════ -->
 				<HBox class="kpiRow">
-					<!-- Total Risks -->
-					<VBox class="kpiCard kpiCardRed">
-						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="Total Risks" class="kpiLabel"/>
-							<core:Icon src="sap-icon://alert" class="kpiIconSmall kpiIconRed"/>
-						</HBox>
-						<Title text="{dashboard>/totalRisks}" level="H1" class="kpiValue"/>
-						<HBox alignItems="Center" class="kpiFooter">
-							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
-								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
-								<Text text="{dashboard>/totalTrend}%" class="trendText"/>
-							</HBox>
-							<Text text=" vs. last 7 days" class="kpiSubtext"/>
-						</HBox>
-					</VBox>
-					<!-- High Severity -->
-					<VBox class="kpiCard kpiCardOrange">
-						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="High Severity" class="kpiLabel"/>
-							<core:Icon src="sap-icon://warning2" class="kpiIconSmall kpiIconOrange"/>
-						</HBox>
-						<Title text="{dashboard>/highSeverity}" level="H1" class="kpiValue"/>
-						<HBox alignItems="Center" class="kpiFooter">
-							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
-								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
-								<Text text="{dashboard>/highTrend}%" class="trendText"/>
-							</HBox>
-							<Text text=" vs. last 7 days" class="kpiSubtext"/>
-						</HBox>
-					</VBox>
-					<!-- Open Incidents -->
+					<!-- Total RICEFs -->
 					<VBox class="kpiCard kpiCardBlue">
 						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="Open Incidents" class="kpiLabel"/>
+							<Text text="Total RICEFs" class="kpiLabel"/>
 							<core:Icon src="sap-icon://document-text" class="kpiIconSmall kpiIconBlue"/>
 						</HBox>
-						<Title text="{dashboard>/openIncidents}" level="H1" class="kpiValue"/>
-						<HBox alignItems="Center" class="kpiFooter">
-							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
-								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
-								<Text text="{dashboard>/openTrend}%" class="trendText"/>
-							</HBox>
-							<Text text=" vs. last 7 days" class="kpiSubtext"/>
-						</HBox>
+						<Title text="{dashboard>/totalRICEFs}" level="H1" class="kpiValue"/>
 					</VBox>
-					<!-- On Track -->
+					<!-- Tier 1 Objects -->
+					<VBox class="kpiCard kpiCardRed">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Tier 1 Objects" class="kpiLabel"/>
+							<core:Icon src="sap-icon://triangle-task" class="kpiIconSmall kpiIconRed"/>
+						</HBox>
+						<Title text="{dashboard>/tier1Objects}" level="H1" class="kpiValue"/>
+					</VBox>
+					<!-- Immediate Action -->
+					<VBox class="kpiCard kpiCardCritical">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Immediate Action" class="kpiLabel"/>
+							<core:Icon src="sap-icon://status-negative" class="kpiIconSmall kpiIconRed"/>
+						</HBox>
+						<Title text="{dashboard>/immediateAction}" level="H1" class="kpiValue"/>
+					</VBox>
+					<!-- Mitigation Required -->
+					<VBox class="kpiCard kpiCardOrange">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Mitigation Required" class="kpiLabel"/>
+							<core:Icon src="sap-icon://warning2" class="kpiIconSmall kpiIconOrange"/>
+						</HBox>
+						<Title text="{dashboard>/mitigationRequired}" level="H1" class="kpiValue"/>
+					</VBox>
+					<!-- Monitor -->
+					<VBox class="kpiCard kpiCardYellow">
+						<HBox alignItems="Center" justifyContent="SpaceBetween">
+							<Text text="Monitor" class="kpiLabel"/>
+							<core:Icon src="sap-icon://history" class="kpiIconSmall kpiIconYellow"/>
+						</HBox>
+						<Title text="{dashboard>/monitor}" level="H1" class="kpiValue"/>
+					</VBox>
+					<!-- Controlled -->
 					<VBox class="kpiCard kpiCardGreen">
 						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="On Track" class="kpiLabel"/>
+							<Text text="Controlled" class="kpiLabel"/>
 							<core:Icon src="sap-icon://accept" class="kpiIconSmall kpiIconGreen"/>
 						</HBox>
-						<Title text="{dashboard>/onTrackPct}%" level="H1" class="kpiValue"/>
-						<HBox alignItems="Center" class="kpiFooter">
-							<HBox alignItems="Center" class="kpiTrend kpiTrendUp">
-								<core:Icon src="sap-icon://trend-up" class="trendIcon"/>
-								<Text text="{dashboard>/onTrackTrend}%" class="trendText"/>
-							</HBox>
-							<Text text=" vs. last 7 days" class="kpiSubtext"/>
-						</HBox>
+						<Title text="{dashboard>/controlled}" level="H1" class="kpiValue"/>
 					</VBox>
 				</HBox>
 
@@ -120,31 +108,18 @@
 						<Text text="Filters" class="filterBarLabel"/>
 					</HBox>
 					<VBox class="filterItem">
-						<Label text="Country" class="filterLabel" labelFor="countryFilter"/>
+						<Label text="Release" class="filterLabel" labelFor="countryFilter"/>
 						<Select id="countryFilter" change=".onFilterChange" class="filterSelect">
 							<items>
-								<core:Item key="" text="All Countries"/>
+								<core:Item key="" text="All Releases"/>
 							</items>
 						</Select>
 					</VBox>
 					<VBox class="filterItem">
-						<Label text="Process" class="filterLabel" labelFor="processFilter"/>
+						<Label text="Process Function" class="filterLabel" labelFor="processFilter"/>
 						<Select id="processFilter" change=".onFilterChange" class="filterSelect">
 							<items>
-								<core:Item key="" text="All Processes"/>
-							</items>
-						</Select>
-					</VBox>
-					<VBox class="filterItem">
-						<Label text="Criticality" class="filterLabel" labelFor="criticalityFilter"/>
-						<Select id="criticalityFilter" change=".onFilterChange" class="filterSelect">
-							<items>
-								<core:Item key="" text="All Criticality"/>
-								<core:Item key="Critical" text="🔴 Critical"/>
-								<core:Item key="High" text="🟠 High"/>
-								<core:Item key="Medium" text="🟡 Medium"/>
-								<core:Item key="Low" text="🟢 Low"/>
-								<core:Item key="Normal" text="✅ Normal"/>
+								<core:Item key="" text="All Process Functions"/>
 							</items>
 						</Select>
 					</VBox>
@@ -155,15 +130,38 @@
 								<core:Item key="" text="All Complexity"/>
 								<core:Item key="High" text="High"/>
 								<core:Item key="Medium" text="Medium"/>
+								<core:Item key="Complex" text="Complex"/>
 								<core:Item key="Low" text="Low"/>
 							</items>
 						</Select>
 					</VBox>
 					<VBox class="filterItem">
-						<Label text="Risk Category" class="filterLabel" labelFor="riskCategoryFilter"/>
+						<Label text="RICEFW Type" class="filterLabel" labelFor="riskCategoryFilter"/>
 						<Select id="riskCategoryFilter" change=".onFilterChange" class="filterSelect">
 							<items>
-								<core:Item key="" text="All Categories"/>
+								<core:Item key="" text="All RICEFW Types"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Risk Band" class="filterLabel" labelFor="riskBandFilter"/>
+						<Select id="riskBandFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Risk Bands"/>
+								<core:Item key="Critical / High" text="Critical / High"/>
+								<core:Item key="Moderate" text="Moderate"/>
+								<core:Item key="Low" text="Low"/>
+							</items>
+						</Select>
+					</VBox>
+					<VBox class="filterItem">
+						<Label text="Readiness Band" class="filterLabel" labelFor="readinessBandFilter"/>
+						<Select id="readinessBandFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Readiness Bands"/>
+								<core:Item key="Low" text="Low"/>
+								<core:Item key="Medium" text="Medium"/>
+								<core:Item key="High" text="High"/>
 							</items>
 						</Select>
 					</VBox>
@@ -182,15 +180,15 @@
 						<HBox alignItems="Center">
 							<core:Icon src="sap-icon://heat-stacked" class="panelHeaderIcon"/>
 							<VBox class="sapUiTinyMarginBegin">
-								<Title text="Operational Risk Heatmap" level="H4" class="panelTitle"/>
-								<Text text="Click any cell to drill-down · Color = dominant criticality · Intensity = volume" class="panelSubtitle"/>
+								<Title text="RICEF Risk × Readiness Heat Map" level="H4" class="panelTitle"/>
+								<Text text="Click a cell to filter · Rows and columns show the workbook's risk and readiness bands" class="panelSubtitle"/>
 							</VBox>
 						</HBox>
 						<HBox alignItems="Center">
-							<SegmentedButton id="heatmapToggle" selectionChange=".onHeatmapToggle" contentMode="ContentFit" selectedKey="process">
+							<SegmentedButton id="heatmapToggle" selectionChange=".onHeatmapToggle" contentMode="ContentFit" selectedKey="riskBand">
 								<items>
-									<SegmentedButtonItem key="process" text="By Process"/>
-									<SegmentedButtonItem key="country" text="By Country"/>
+									<SegmentedButtonItem key="riskBand" text="Risk Band Rows"/>
+									<SegmentedButtonItem key="readinessBand" text="Readiness Rows"/>
 								</items>
 							</SegmentedButton>
 						</HBox>
@@ -203,24 +201,16 @@
 					<HBox class="heatmapLegend" alignItems="Center" justifyContent="SpaceBetween">
 						<HBox alignItems="Center" class="legendGroup">
 							<HBox alignItems="Center" class="legendItem">
-								<html:span class="legendDot legendCritical"/>
-								<Text text="Critical" class="legendText"/>
-							</HBox>
-							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendHigh"/>
-								<Text text="High" class="legendText"/>
+								<Text text="Critical / High" class="legendText"/>
 							</HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendMedium"/>
-								<Text text="Medium" class="legendText"/>
+								<Text text="Moderate" class="legendText"/>
 							</HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendLow"/>
 								<Text text="Low" class="legendText"/>
-							</HBox>
-							<HBox alignItems="Center" class="legendItem">
-								<html:span class="legendDot legendNormal"/>
-								<Text text="Normal" class="legendText"/>
 							</HBox>
 						</HBox>
 						<Text text="Tip: Click a cell to filter the panels below" class="legendHint"/>
