@@ -272,7 +272,7 @@ sap.ui.define([
 				colSet.forEach(function(c) {
 					var cell = (lookup[r] && lookup[r][c]) ? lookup[r][c] : null;
 					var count = cell ? cell.count : 0;
-					var dominant = this.getDominant(cell);
+					var dominant = getDominant(cell);
 					var color = dominant ? COLOR_MAP[dominant] : "#ebcccc";
 					var textColor = (color === COLOR_MAP["Low"]) ? "#5D4037" : (dominant ? "#fff" : "#9CA3AF");
 					var intensity = count > 0 ? Math.max(0.55, Math.min(1, 0.55 + (count / maxCount) * 0.45)) : 1;
@@ -716,7 +716,7 @@ sap.ui.define([
 				sap.ushell.Container.getService("CrossApplicationNavigation");
 			if (oCrossAppNav) {
 				oCrossAppNav.toExternal({
-					target: { semanticObject: "RiskList1", action: "manage" }
+					target: { semanticObject: "RiskList", action: "manage" }
 				});
 			} else {
 				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html";
