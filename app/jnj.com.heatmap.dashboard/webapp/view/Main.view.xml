@@ -102,7 +102,7 @@
 				</HBox>
 
 				<!-- ═══ FILTER BAR ═══════════════════════════════════════════ -->
-				<HBox class="filterBar" alignItems="Center" wrap="Wrap">
+				<HBox class="filterBar" alignItems="End" wrap="NoWrap">
 					<HBox alignItems="Center" class="filterBarLeft">
 						<core:Icon src="sap-icon://filter" class="filterBarIcon"/>
 						<Text text="Filters" class="filterBarLabel"/>

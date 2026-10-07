@@ -44,6 +44,8 @@ The OData service is available at <http://localhost:4004/heatmap/>. Keep the ter
 
 ## Local Development Notes
 
+At local server startup, the existing risks, actions, mitigations, workstreams, and upload history are replaced transactionally with the Tracker data in `srv/data/BOOK.xlsx`. Blank template rows are excluded. The import runs once per server start; page refreshes and navigation only read the loaded data. Local edits last until the next server restart. Production does not run this replacement.
+
 - The root `app/` folder contains the launchpad and the two UI5 applications.
 - The CAP service and data model are in `srv/` and `db/`.
 - Local development uses the project's development configuration. Production database and authentication settings are separate.

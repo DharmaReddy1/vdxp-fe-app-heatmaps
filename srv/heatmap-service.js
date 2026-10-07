@@ -1,5 +1,6 @@
 import cds from '@sap/cds';
 import XLSX from 'xlsx';
+import { readFile } from 'node:fs/promises';
 
 export default class HeatmapService extends cds.ApplicationService {
 
@@ -340,6 +341,29 @@ export default class HeatmapService extends cds.ApplicationService {
         });
 
         await super.init();
+
+        // Load the bundled Tracker once at local server startup, before serving requests.
+        if (!cds.env.profiles.includes('production')) {
+            const fileName = 'BOOK.xlsx';
+            const buffer = await readFile(new URL(`./data/${fileName}`, import.meta.url));
+            await this.tx(async tx => {
+                if (Risk.drafts) await cds.db.run(DELETE.from(Risk.drafts));
+                await cds.db.run(DELETE.from(ActionTracker));
+                await cds.db.run(DELETE.from(MitigationPlan));
+                await cds.db.run(DELETE.from(Risk));
+                await cds.db.run(DELETE.from(UploadBatch));
+                await cds.db.run(DELETE.from(Workstream));
+                const result = await tx.send('uploadExcel', {
+                    fileContent: buffer.toString('base64'),
+                    fileName,
+                    replaceExisting: true
+                });
+                if (result.status !== 'Completed' || result.errorCount) {
+                    throw new Error(`Startup Tracker import failed: ${result.message}`);
+                }
+                cds.log('heatmap').info(`Loaded ${result.recordCount} records from ${fileName}`);
+            });
+        }
     }
 };
 

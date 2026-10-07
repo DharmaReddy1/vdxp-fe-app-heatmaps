@@ -211,7 +211,7 @@ html, body {
     box-shadow: 0 1px 4px rgba(0,0,0,0.08);
     gap: 0.875rem;
     align-items: flex-end;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
 }
 
 /* Left label group */
@@ -245,9 +245,10 @@ html, body {
     line-height: 1;
 }
 
-.filterItem { min-width: 120px; }
+.filterItem { flex: 1 1 0; min-width: 0; }
 .filterLabel { font-size: 0.72rem !important; color: #6B7280 !important; margin-bottom: 2px; }
-.filterSelect { min-width: 120px; }
+.filterSelect { min-width: 0; width: 100% !important; max-width: 100%; }
+.filterBar > .resetButton { flex-shrink: 0; }
 
 /* Clear filters button */
 .resetButton.sapMBtn .sapMBtnInner {
@@ -577,6 +578,8 @@ html, body {
     .bottomPanel { flex: 1 1 calc(50% - 0.44rem); }
 }
 @media (max-width: 900px) {
+    .filterBar { flex-wrap: wrap; }
+    .filterItem { flex: 1 1 180px; }
     .kpiRow { flex-wrap: wrap; }
     .kpiCard { flex: 1 1 calc(50% - 0.44rem); }
     .dashboardRoot { padding: 0.75rem 1rem 1.5rem; }
@@ -585,5 +588,5 @@ html, body {
     .kpiCard { flex: 1 1 100%; }
     .bottomPanel { flex: 1 1 100%; }
     .filterBar { flex-direction: column; align-items: stretch; }
-    .filterItem { min-width: 100%; }
+    .filterItem { flex: 0 0 auto; min-width: 100%; }
 }
