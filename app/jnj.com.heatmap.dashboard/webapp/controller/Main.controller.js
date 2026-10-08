@@ -319,6 +319,7 @@ sap.ui.define([
 			this._updateFilterBadge();
 			this._loadHeatmap();
 			this._loadTopRisks();
+			this._loadInvestigationQueue();
 			this._loadRiskDistribution();
 			this._loadComplexityProfile();
 			MessageToast.show("Filtered: " + riskBand + " risk / " + readinessBand + " readiness");
@@ -388,56 +389,60 @@ sap.ui.define([
 				null,
 				null,
 				{
-					$orderby: "createdAt desc",
-					$filter: "status eq 'Open'"
+					$orderby: "riskId asc,ID asc"
 				}
 			);
 
-			oList.requestContexts(0, 3).then(function (aCtx) {
+			oList.filter(this._buildODataFilters());
+			oList.requestContexts(0, 9999).then(function (aCtx) {
 
 				var aRisks = aCtx.map(function(c) {
 					return c.getObject();
 				});
 
-				this._renderInvestigationQueue(aRisks);
+				this._ricefRecords = aRisks;
+				this._filterRicefRecords();
 
 			}.bind(this)).catch(function(e) {
 
-				console.error("Investigation queue load failed:", e);
+				console.error("RICEF list load failed:", e);
+				this._ricefRecords = [];
 				this._renderInvestigationQueue([]);
 
 			}.bind(this));
 		},
 
+		onRicefSearch: function (oEvent) {
+			this._ricefSearch = oEvent.getSource().getValue();
+			this._filterRicefRecords();
+		},
+
+		_filterRicefRecords: function () {
+			var query = (this._ricefSearch || "").trim().toLowerCase();
+			var records = (this._ricefRecords || []).filter(function (risk) {
+				return !query || [risk.ricefw, risk.riskId, risk.ricefId, risk.wricefName, risk.riskTitle, risk.processFunction, risk.process, risk.scrumTeam, risk.release]
+					.join(" ").toLowerCase().includes(query);
+			});
+			this._renderInvestigationQueue(records.slice(0, 5));
+		},
+
 		_renderInvestigationQueue: function (aRisks) {
-			var oList = this.byId("investigationList");
-			if (!oList) { return; }
-			oList.removeAllItems();
-			if (!aRisks || aRisks.length === 0) {
-				var oEmpty = new CustomListItem();
-				oEmpty.addContent(new Text({ text: "No open incidents", wrapping: false }).addStyleClass("sapUiSmallMargin"));
-				oList.addItem(oEmpty);
-				return;
+			var oRecordsModel = this.getView().getModel("ricefs");
+			if (!oRecordsModel) {
+				oRecordsModel = new JSONModel({ records: [] });
+				this.getView().setModel(oRecordsModel, "ricefs");
 			}
-			aRisks.forEach(function(risk) {
-				var oItem = new CustomListItem({ type: "Navigation", press: this.onViewAllRisks.bind(this) });
-				var oRow = new HBox({ alignItems: "Center", justifyContent: "SpaceBetween" }).addStyleClass("invRow");
-				var oLeft = new HBox({ alignItems: "Center" });
-				var oIcon = new Icon({ src: "sap-icon://document-text" }).addStyleClass("invIcon");
-				var oInfo = new VBox();
-				var sId = risk.riskId || risk.ID || "";
-				var sTitle = (sId ? sId + " \u2013 " : "") + (risk.riskTitle || "Unknown");
-				var sProcess = risk.process ? "(" + risk.process + " \u2013 " + (risk.country || "") + ")" : "";
-				oInfo.addItem(new Text({ text: sTitle, wrapping: false }).addStyleClass("invTitle"));
-				if (sProcess) { oInfo.addItem(new Text({ text: sProcess, wrapping: false }).addStyleClass("invSubtitle")); }
-				oLeft.addItem(oIcon);
-				oLeft.addItem(oInfo);
-				var oTime = new Text({ text: "recently" }).addStyleClass("invTime");
-				oRow.addItem(oLeft);
-				oRow.addItem(oTime);
-				oItem.addContent(oRow);
-				oList.addItem(oItem);
-			}.bind(this));
+			oRecordsModel.setProperty("/records", (aRisks || []).map(function (risk, index) {
+				return {
+					ID: risk.ID,
+					IsActiveEntity: risk.IsActiveEntity !== false,
+					rank: String(index + 1),
+					criticality: risk.criticality || "",
+					title: [risk.ricefw || risk.riskId, risk.wricefName || risk.riskTitle].filter(Boolean).join(" – "),
+					description: [risk.processFunction || risk.process, risk.release || risk.country].filter(Boolean).join(" – "),
+					readinessBand: risk.readinessBand || ""
+				};
+			}));
 		},
 
 		// ─── Risk Distribution Donut ──────────────────────────────────────────
@@ -721,6 +726,7 @@ sap.ui.define([
 			this._updateFilterBadge();
 			this._loadHeatmap();
 			this._loadTopRisks();
+			this._loadInvestigationQueue();
 			this._loadRiskDistribution();
 			this._loadComplexityProfile();
 			MessageToast.show("Filters cleared");
@@ -744,12 +750,32 @@ sap.ui.define([
 			MessageToast.show("Dashboard refreshed");
 		},
 
+		onRicefPress: function (oEvent) {
+			var oContext = oEvent.getSource().getBindingContext("ricefs");
+			var record = oContext && oContext.getObject();
+			if (!record || !record.ID) {
+				MessageToast.show("This RICEF could not be opened. Refresh the dashboard and try again.");
+				return;
+			}
+			var route = "Risk(ID=" + encodeURIComponent(record.ID) + ",IsActiveEntity=" + (record.IsActiveEntity !== false) + ")";
+			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
+				sap.ushell.Container.getService("CrossApplicationNavigation");
+			if (oCrossAppNav) {
+				oCrossAppNav.toExternal({
+					target: { semanticObject: "RiskList", action: "manage" },
+					appSpecificRoute: "/" + route
+				});
+			} else {
+				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html#/" + route;
+			}
+		},
+
 		onViewAllRisks: function () {
 			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
 				sap.ushell.Container.getService("CrossApplicationNavigation");
 			if (oCrossAppNav) {
 				oCrossAppNav.toExternal({
-					target: { semanticObject: "RiskList1", action: "manage" }
+					target: { semanticObject: "RiskList", action: "manage" }
 				});
 			} else {
 				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html";

@@ -297,16 +297,30 @@
 
 					</VBox>
 
-					<!-- Recent Investigation Queue -->
-					<VBox class="bottomPanel panelCard">
+					<!-- Searchable RICEF list -->
+					<VBox class="bottomPanel panelCard ricefPanel sapUiSizeCompact">
 						<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
 							<HBox alignItems="Center">
 								<core:Icon src="sap-icon://activity-2" class="panelHeaderIcon panelHeaderIconOrange"/>
-								<Title text="Investigation Queue" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+								<Title text="RICEF Records" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
 							</HBox>
 							<Link text="View all →" press=".onViewAllRisks" class="viewAllLink"/>
 						</HBox>
-						<List id="investigationList" noDataText="No open incidents" showSeparators="None" class="investigationList"/>
+						<SearchField id="ricefSearch" placeholder="Search RICEF ID or name" liveChange=".onRicefSearch" search=".onRicefSearch" width="100%" class="sapUiTinyMarginBottom"/>
+						<List id="investigationList" items="{ricefs>/records}" noDataText="No matching RICEFs" showSeparators="None" class="topRiskList">
+							<CustomListItem type="Navigation" press=".onRicefPress">
+								<HBox alignItems="Center" justifyContent="SpaceBetween" class="topRiskRow">
+									<HBox alignItems="Center" class="ricefRowContent">
+										<Text text="{ricefs>rank}" class="riskRank"/>
+										<VBox class="ricefRowText">
+											<Text text="{ricefs>title}" wrapping="false" class="riskTitle"/>
+											<Text text="{ricefs>description}" wrapping="false" class="riskSubtitle"/>
+										</VBox>
+									</HBox>
+									<Text text="{ricefs>criticality}" class="critBadge ricefCriticality"/>
+								</HBox>
+							</CustomListItem>
+						</List>
 					</VBox>
 
 					<!-- Complexity Profile -->
