@@ -516,10 +516,10 @@ html, body {
     top: 1px;
 }
 .donutDotCritical { color: #7B1FA2 !important; }
-.donutDotHigh     { color: #EF4444 !important; }
-.donutDotMedium   { color: #F59E0B !important; }
-.donutDotLow      { color: #EAB308 !important; }
-.donutDotNormal   { color: #10B981 !important; }
+.donutDotHigh     { color: #E53935 !important; }
+.donutDotMedium   { color: #FB8C00 !important; }
+.donutDotLow      { color: #FDD835 !important; }
+.donutDotNormal   { color: #43A047 !important; }
 .donutLegendLabel {
     font-size: 0.78rem !important;
     color: #374151 !important;

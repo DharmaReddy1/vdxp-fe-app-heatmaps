@@ -59,6 +59,7 @@ sap.ui.define([
 				activeFilterCount: 0
 			});
 			this.getView().setModel(oDashModel, "dashboard");
+			this.getView().setModel(new JSONModel({ items: [] }), "distribution");
 
 			// Heatmap state
 			this._heatmapMode = "riskBand";
@@ -491,11 +492,13 @@ sap.ui.define([
 							});
 
 							aData.sort(function (a, b) {
-								return (order[a.criticality] || 99) -
-									(order[b.criticality] || 99);
+									return (order[a.criticality] ?? 99) -
+										(order[b.criticality] ?? 99);
 							});
 
 							this._distributionData = aData;
+							this._donutPropertiesApplied = false;
+							this.getView().getModel("distribution").setProperty("/items", aData);
 
 							this._renderDonutLegendFromData(aData);
 
@@ -523,13 +526,9 @@ sap.ui.define([
 					visible: false
 				},
 				plotArea: {
-					colorPalette: [
-						COLOR_MAP["Critical"],
-						COLOR_MAP["High"],
-						COLOR_MAP["Medium"],
-						COLOR_MAP["Low"],
-						COLOR_MAP["Normal"]
-					],
+					colorPalette: (this._distributionData || []).map(function (item) {
+						return COLOR_MAP[item.criticality] || "#9CA3AF";
+					}),
 					dataLabel: {
 						visible: false
 					}

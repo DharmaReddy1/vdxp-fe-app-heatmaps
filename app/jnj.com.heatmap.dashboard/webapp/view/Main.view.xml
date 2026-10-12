@@ -256,17 +256,17 @@
 									renderComplete=".onDonutRenderComplete">
 
 									<viz:dataset>
-										<vizData:FlattenedDataset data="{/RiskDistribution}">
+										<vizData:FlattenedDataset data="{distribution>/items}">
 											<vizData:dimensions>
 												<vizData:DimensionDefinition
 													name="Criticality"
-													value="{criticality}"/>
+													value="{distribution>criticality}"/>
 											</vizData:dimensions>
 
 											<vizData:measures>
 												<vizData:MeasureDefinition
 													name="Count"
-													value="{count}"/>
+													value="{distribution>count}"/>
 											</vizData:measures>
 										</vizData:FlattenedDataset>
 									</viz:dataset>
