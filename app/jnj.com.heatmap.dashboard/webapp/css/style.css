@@ -426,7 +426,7 @@ html, body {
 .legendCritical { background: #7B1FA2; }
 .legendHigh     { background: #EF4444; }
 .legendMedium   { background: #FB8C00; }
-.legendLow      { background: #43A047; }
+.legendLow      { background: #FDD835; }
 .legendNormal   { background: #10B981; }
 .legendText { font-size: 0.72rem !important; color: #6B7280 !important; }
 .legendHint {
@@ -443,6 +443,11 @@ html, body {
     border-bottom: 1px solid #F9FAFB;
 }
 .topRiskRow:last-child { border-bottom: none; }
+.topRiskContent { min-width: 0; margin-right: 0.75rem; }
+.topRiskText { min-width: 0; }
+.topRiskText .sapMText { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.topRiskRow .critBadge { overflow: visible; max-width: none; }
+.panelHeader .viewAllLink { flex-shrink: 0; white-space: nowrap; margin-left: 0.5rem; }
 .riskRank {
     width: 22px;
     height: 22px;

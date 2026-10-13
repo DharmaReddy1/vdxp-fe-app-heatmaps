@@ -1,6 +1,5 @@
 {
 	"_version": "1.65.0",
-
 	"sap.app": {
 		"id": "jnj.com.heatmap.risklist",
 		"type": "application",
@@ -37,7 +36,6 @@
 			}
 		}
 	},
-
 	"sap.ui": {
 		"technology": "UI5",
 		"icons": {},
@@ -48,12 +46,10 @@
 		},
 		"fullWidth": true
 	},
-
 	"sap.fiori": {
 		"registrationIds": [],
 		"archeType": "transactional"
 	},
-
 	"sap.ui5": {
 		"flexEnabled": true,
 		"dependencies": {
@@ -64,12 +60,10 @@
 				"sap.fe.templates": {}
 			}
 		},
-
 		"contentDensities": {
 			"compact": true,
 			"cozy": true
 		},
-
 		"models": {
 			"i18n": {
 				"type": "sap.ui.model.resource.ResourceModel",
@@ -88,7 +82,6 @@
 				}
 			}
 		},
-
 		"routing": {
 			"config": {},
 			"routes": [
@@ -134,12 +127,28 @@
 								"@com.sap.vocabularies.UI.v1.LineItem": {
 									"actions": {
 										"ImportExcel": {
-												"press": "jnj.com.heatmap.risklist.ext.controller.ListReportExt.onOpenExcelUpload",
+											"press": "jnj.com.heatmap.risklist.ext.controller.ListReportExt.onOpenExcelUpload",
 											"text": "Import Excel",
 											"enabled": true,
 											"position": {
 												"placement": "Before",
 												"anchor": "StandardAction::Create"
+											}
+										}
+									},
+									"columns": {
+										"RICEFWIdentifier": {
+											"header": "RICEFW / WRICEF Name",
+											"template": "jnj.com.heatmap.risklist.ext.fragment.RICEFWIdentifier",
+											"properties": [
+												"ricefw",
+												"wricefName"
+											],
+											"width": "24rem",
+											"importance": "High",
+											"position": {
+												"placement": "Before",
+												"anchor": "DataField::epicJiraId"
 											}
 										}
 									}

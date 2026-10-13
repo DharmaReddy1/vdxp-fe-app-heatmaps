@@ -2,7 +2,9 @@ sap.ui.define([
 	"./BaseController",
 	"sap/ui/model/json/JSONModel",
 	"sap/m/MessageToast",
+	"./UploadDialog",
 	"sap/m/CustomListItem",
+	"sap/m/FlexItemData",
 	"sap/m/HBox",
 	"sap/m/VBox",
 	"sap/m/Text",
@@ -12,7 +14,7 @@ sap.ui.define([
 	"sap/ui/core/Item",
 	"sap/ui/model/Filter",
 	"sap/ui/model/FilterOperator"
-], function (BaseController, JSONModel, MessageToast, CustomListItem, HBox, VBox, Text, Title, HTML, Icon, Item, Filter, FilterOperator) {
+], function (BaseController, JSONModel, MessageToast, UploadDialog, CustomListItem, FlexItemData, HBox, VBox, Text, Title, HTML, Icon, Item, Filter, FilterOperator) {
 	"use strict";
 
 	// Color mapping
@@ -27,7 +29,7 @@ sap.ui.define([
 	var HEATMAP_BAND_COLORS = {
 		"Critical / High": COLOR_MAP["High"],
 		"Moderate": COLOR_MAP["Medium"],
-		"Low": COLOR_MAP["Normal"]
+		"Low": COLOR_MAP["Low"]
 	};
 
 	return BaseController.extend("jnj.com.heatmap.dashboard.controller.Main", {
@@ -259,8 +261,8 @@ sap.ui.define([
 					var cell = (lookup[r] && lookup[r][c]) ? lookup[r][c] : null;
 					var count = cell ? cell.count : 0;
 					var dominant = getDominant(cell);
-					var color = dominant ? (dominant === "Low" ? COLOR_MAP.Normal : COLOR_MAP[dominant] || "#3B82F6") : "#F0F2F5";
-					var textColor = dominant ? "#fff" : "#9CA3AF";
+					var color = dominant ? (COLOR_MAP[dominant] || "#3B82F6") : "#F0F2F5";
+					var textColor = dominant === "Low" ? "#333" : dominant ? "#fff" : "#9CA3AF";
 					var intensity = count > 0 ? Math.max(0.55, Math.min(1, 0.55 + (count / maxCount) * 0.45)) : 1;
 					var tooltip = _escapeHtml(getTooltip(cell, r, c));
 					var clickable = count > 0 ? ' data-row="' + _escapeHtml(r) + '" data-col="' + _escapeHtml(c) + '" data-mode="' + mode + '"' : '';
@@ -357,19 +359,29 @@ sap.ui.define([
 				return;
 			}
 			aRisks.forEach(function(risk, idx) {
-				var oItem = new CustomListItem({ type: "Navigation", press: this.onViewAllRisks.bind(this) });
+				var oItem = new CustomListItem({ type: "Navigation", press: this._navigateToRisk.bind(this, risk) });
 				var oRow = new HBox({ alignItems: "Center", justifyContent: "SpaceBetween" }).addStyleClass("topRiskRow");
 				// Left: rank + title + subtitle
-				var oLeft = new HBox({ alignItems: "Center" });
-				var oRank = new Text({ text: String(idx + 1) }).addStyleClass("riskRank rank" + (idx + 1));
-				var oInfo = new VBox();
+				var oLeft = new HBox({
+					alignItems: "Center",
+					layoutData: new FlexItemData({ growFactor: 1, shrinkFactor: 1, baseSize: "0%", minWidth: "0" })
+				}).addStyleClass("topRiskContent");
+				var oRank = new Text({ text: String(idx + 1), layoutData: new FlexItemData({ shrinkFactor: 0 }) }).addStyleClass("riskRank rank" + (idx + 1));
+				var oInfo = new VBox({
+					layoutData: new FlexItemData({ growFactor: 1, shrinkFactor: 1, baseSize: "0%", minWidth: "0" })
+				}).addStyleClass("topRiskText");
 				var sTitle = (risk.riskTitle || "Unknown Risk") + (risk.country ? " \u2013 " + risk.country : "");
-				oInfo.addItem(new Text({ text: sTitle, wrapping: false }).addStyleClass("riskTitle"));
-				oInfo.addItem(new Text({ text: risk.process || risk.description || "", wrapping: false }).addStyleClass("riskSubtitle"));
+				oInfo.addItem(new Text({ text: sTitle, tooltip: sTitle, width: "100%", wrapping: false }).addStyleClass("riskTitle"));
+				var sSubtitle = [risk.process || risk.description, risk.ricefwType].filter(Boolean).join(" \u00b7 ");
+				oInfo.addItem(new Text({ text: sSubtitle, tooltip: sSubtitle, width: "100%", wrapping: false }).addStyleClass("riskSubtitle"));
 				oLeft.addItem(oRank);
 				oLeft.addItem(oInfo);
 				// Right: criticality badge
-				var oBadge = new Text({ text: risk.criticality || "" })
+				var oBadge = new Text({
+					text: risk.criticality || "",
+					wrapping: false,
+					layoutData: new FlexItemData({ growFactor: 0, shrinkFactor: 0 })
+				})
 					.addStyleClass("critBadge critBadge" + (risk.criticality || ""));
 				oRow.addItem(oLeft);
 				oRow.addItem(oBadge);
@@ -726,15 +738,7 @@ sap.ui.define([
 
 		// ─── Navigation ───────────────────────────────────────────────────────
 		onNavigateToUpload: function () {
-			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
-				sap.ushell.Container.getService("CrossApplicationNavigation");
-			if (oCrossAppNav) {
-				oCrossAppNav.toExternal({
-					target: { semanticObject: "RiskUpload", action: "import" }
-				});
-			} else {
-				window.location.href = "/jnj.com.heatmap.upload/webapp/index.html";
-			}
+			UploadDialog.open(this);
 		},
 
 		onRefresh: function () {
@@ -745,6 +749,10 @@ sap.ui.define([
 		onRicefPress: function (oEvent) {
 			var oContext = oEvent.getSource().getBindingContext("ricefs");
 			var record = oContext && oContext.getObject();
+			this._navigateToRisk(record);
+		},
+
+		_navigateToRisk: function (record) {
 			if (!record || !record.ID) {
 				MessageToast.show("This RICEF could not be opened. Refresh the dashboard and try again.");
 				return;
