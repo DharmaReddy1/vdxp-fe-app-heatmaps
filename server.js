@@ -3,7 +3,11 @@ import path from 'path';
 import fs from 'fs';
 import os from 'node:os';
 import { fileURLToPath } from 'url';
-import { Builder as LessBuilder } from 'less-openui5';
+
+// Local UI5 cache and theme compilation are development-only. In production,
+// the application router serves the built UIs, which load SAPUI5 from the CDN.
+if (process.env.NODE_ENV !== 'production' && !cds.env.profiles?.includes('production')) {
+const { Builder: LessBuilder } = await import('less-openui5');
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -220,5 +224,7 @@ cds.on('bootstrap', (app) => {
         next();
     });
 });
+
+}
 
 export default cds.server;
