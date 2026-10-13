@@ -181,6 +181,8 @@ entity TopRiskAreasView as
             process,
             criticality,
             status,
+            ricefwType,
+            priority,
             riskBand,
             readinessBand,
             heatMapStatus,

@@ -62,7 +62,7 @@ sap.ui.define([
 			this.getView().setModel(new JSONModel({ items: [] }), "distribution");
 
 			// Heatmap state
-			this._heatmapMode = "riskBand";
+			this._heatmapMode = "ricefwType";
 			this._activeFilters = {};
 
 			// Load after render
@@ -142,18 +142,7 @@ sap.ui.define([
 				oContainer.innerHTML = '<div class="heatmapLoading"><div class="heatmapSpinner"></div><span>Loading heatmap data...</span></div>';
 			}
 
-			var oList = oModel.bindList("/HeatmapSummary");
-			// Apply active filters — OData $filter works on the projection view
-			var aFilters = this._buildODataFilters();
-			if (aFilters.length) { oList.filter(aFilters); }
-			oList.requestContexts(0, 9999).then(function (aCtx) {
-				var aData = aCtx.map(function(c){ return c.getObject(); });
-				this._renderHeatmapTable(aData);
-			}.bind(this)).catch(function(e){
-				console.error("Heatmap load failed:", e);
-				// Fallback: load all risks and aggregate client-side
-				this._loadHeatmapFallback();
-			}.bind(this));
+			this._loadHeatmapFallback();
 		},
 
 		_loadHeatmapFallback: function () {
@@ -167,11 +156,12 @@ sap.ui.define([
 				// Aggregate client-side
 				var agg = {};
 				aRisks.forEach(function(r) {
-					if (!r.riskBand || !r.readinessBand) { return; }
-					var riskBand = r.riskBand === "Critical" || r.riskBand === "High" ? "Critical / High" : r.riskBand;
-					var key = riskBand + "|||" + r.readinessBand;
+
+					var ricefwType = r.ricefwType || "(blank)";
+					r.priority = r.priority || "(blank)";
+					var key = JSON.stringify([ricefwType, r.priority]);
 					if (!agg[key]) {
-						agg[key] = { riskBand: riskBand, readinessBand: r.readinessBand, count: 0 };
+						agg[key] = { ricefwType: ricefwType, priority: r.priority, count: 0 };
 					}
 					agg[key].count++;
 				});
@@ -184,8 +174,8 @@ sap.ui.define([
 			if (!oContainer) { return; }
 
 			var mode = this._heatmapMode;
-			var rowKey = mode === "riskBand" ? "riskBand" : "readinessBand";
-			var colKey = mode === "riskBand" ? "readinessBand" : "riskBand";
+			var rowKey = mode === "ricefwType" ? "ricefwType" : "priority";
+			var colKey = mode === "ricefwType" ? "priority" : "ricefwType";
 
 			if (!aData || aData.length === 0) {
 				oContainer.innerHTML = '<div class="heatmapNoData">' +
@@ -197,10 +187,10 @@ sap.ui.define([
 			}
 			var groupedData = {};
 			aData.forEach(function(d) {
-				var riskBand = d.riskBand === "Critical" || d.riskBand === "High" ? "Critical / High" : d.riskBand;
-				var key = riskBand + "|||" + d.readinessBand;
+				var ricefwType = d.ricefwType;
+				var key = JSON.stringify([ricefwType, d.priority]);
 				if (!groupedData[key]) {
-					groupedData[key] = { riskBand: riskBand, readinessBand: d.readinessBand, count: 0 };
+					groupedData[key] = { ricefwType: ricefwType, priority: d.priority, count: 0 };
 				}
 				groupedData[key].count += d.count || 0;
 			});
@@ -214,15 +204,15 @@ sap.ui.define([
 				if (rowIndex[r] === undefined) { rowIndex[r] = rowSet.length; rowSet.push(r); }
 				if (colIndex[c] === undefined) { colIndex[c] = colSet.length; colSet.push(c); }
 			});
-			var riskBandOrder = { "Critical / High": 0, "Moderate": 1, "Low": 2 };
-			var readinessBandOrder = { "Low": 0, "Medium": 1, "High": 2 };
-			var rowOrder = mode === "riskBand" ? riskBandOrder : readinessBandOrder;
-			var colOrder = mode === "riskBand" ? readinessBandOrder : riskBandOrder;
+			var ricefwTypeOrder = {};
+			var priorityOrder = { "Critical": 0, "High": 1, "Medium": 2, "Low": 3 };
+			var rowOrder = mode === "ricefwType" ? ricefwTypeOrder : priorityOrder;
+			var colOrder = mode === "ricefwType" ? priorityOrder : ricefwTypeOrder;
 			rowSet.sort(function(a, b) {
-				return (rowOrder[a] === undefined ? 99 : rowOrder[a]) - (rowOrder[b] === undefined ? 99 : rowOrder[b]);
+				return (rowOrder[a] === undefined ? 99 : rowOrder[a]) - (rowOrder[b] === undefined ? 99 : rowOrder[b]) || a.localeCompare(b, undefined, { numeric: true });
 			});
 			colSet.sort(function(a, b) {
-				return (colOrder[a] === undefined ? 99 : colOrder[a]) - (colOrder[b] === undefined ? 99 : colOrder[b]);
+				return (colOrder[a] === undefined ? 99 : colOrder[a]) - (colOrder[b] === undefined ? 99 : colOrder[b]) || a.localeCompare(b, undefined, { numeric: true });
 			});
 
 			// Build lookup: row -> col -> cell data
@@ -233,13 +223,13 @@ sap.ui.define([
 				if (!lookup[r]) { lookup[r] = {}; }
 				lookup[r][c] = {
 					count: d.count || 0,
-					riskBand: d.riskBand,
-					readinessBand: d.readinessBand
+					ricefwType: d.ricefwType,
+					priority: d.priority
 				};
 			});
 
 			var getDominant = function(cell) {
-				return cell && cell.count > 0 ? cell.riskBand : null;
+				return cell && cell.count > 0 ? cell.priority : null;
 			};
 
 			// Build tooltip text
@@ -253,7 +243,7 @@ sap.ui.define([
 			aData.forEach(function(d){ if ((d.count || 0) > maxCount) { maxCount = d.count; } });
 
 			// Build HTML table
-			var colHeaderLabel = mode === "riskBand" ? "Risk Band \\ Readiness Band" : "Readiness Band \\ Risk Band";
+			var colHeaderLabel = mode === "ricefwType" ? "RICEFW Type \\ Priority" : "Priority \\ RICEFW Type";
 			var html = '<div class="heatmapScrollWrapper"><table class="heatmapTable">' +
 				'<thead><tr><th class="heatmapCornerHeader">' + colHeaderLabel + '</th>';
 			colSet.forEach(function(c) {
@@ -269,7 +259,7 @@ sap.ui.define([
 					var cell = (lookup[r] && lookup[r][c]) ? lookup[r][c] : null;
 					var count = cell ? cell.count : 0;
 					var dominant = getDominant(cell);
-					var color = dominant ? HEATMAP_BAND_COLORS[dominant] : "#F0F2F5";
+					var color = dominant ? (dominant === "Low" ? COLOR_MAP.Normal : COLOR_MAP[dominant] || "#3B82F6") : "#F0F2F5";
 					var textColor = dominant ? "#fff" : "#9CA3AF";
 					var intensity = count > 0 ? Math.max(0.55, Math.min(1, 0.55 + (count / maxCount) * 0.45)) : 1;
 					var tooltip = _escapeHtml(getTooltip(cell, r, c));
@@ -279,10 +269,7 @@ sap.ui.define([
 						';color:' + textColor + ';" title="' + tooltip + '"' + clickable + '>';
 					if (count > 0) {
 						html += '<span class="heatmapCellCount">' + count + '</span>';
-						if (dominant) {
-							var badgeBand = dominant === "Moderate" ? "Medium" : dominant === "Critical / High" ? "High" : dominant;
-							html += '<span class="heatmapCellBadge heatmapBadge' + badgeBand + '">' + dominant[0] + '</span>';
-						}
+
 					} else {
 						html += '<span class="heatmapCellDash">—</span>';
 					}
@@ -307,15 +294,16 @@ sap.ui.define([
 		},
 
 		_onHeatmapCellClick: function (sRow, sCol, sMode) {
-			var riskBand = sMode === "riskBand" ? sRow : sCol;
-			var readinessBand = sMode === "riskBand" ? sCol : sRow;
-			this._activeFilters.riskBand = riskBand;
-			this._activeFilters.readinessBand = readinessBand;
+			var ricefwType = sMode === "ricefwType" ? sRow : sCol;
+			var priority = sMode === "ricefwType" ? sCol : sRow;
+			this._activeFilters.ricefwType = ricefwType === "(blank)" ? null : ricefwType;
+			delete this._activeFilters.riskCategory;
+			this._activeFilters.priority = priority === "(blank)" ? null : priority;
 
-			var oRiskBand = this.byId("riskBandFilter");
-			var oReadinessBand = this.byId("readinessBandFilter");
-			if (oRiskBand) { oRiskBand.setSelectedKey(riskBand); }
-			if (oReadinessBand) { oReadinessBand.setSelectedKey(readinessBand); }
+			var oRiskBand = this.byId("riskCategoryFilter");
+			var oReadinessBand = this.byId("priorityFilter");
+			if (oRiskBand) { oRiskBand.setSelectedKey(ricefwType); }
+			if (oReadinessBand) { oReadinessBand.setSelectedKey(priority); }
 
 			this._updateFilterBadge();
 			this._loadHeatmap();
@@ -323,7 +311,7 @@ sap.ui.define([
 			this._loadInvestigationQueue();
 			this._loadRiskDistribution();
 			this._loadComplexityProfile();
-			MessageToast.show("Filtered: " + riskBand + " risk / " + readinessBand + " readiness");
+			MessageToast.show("Filtered: " + ricefwType + " type / " + priority + " priority");
 		},
 
 		onHeatmapToggle: function (oEvent) {
@@ -335,16 +323,27 @@ sap.ui.define([
 		_loadTopRisks: function () {
 			var oModel = this.getOwnerComponent().getModel();
 			if (!oModel) { return; }
-			var oList = oModel.bindList("/TopRiskAreas");
-			var aFilters = this._buildODataFilters();
-			if (aFilters.length) { oList.filter(aFilters); }
-			oList.requestContexts(0, 5).then(function (aCtx) {
-				var aRisks = aCtx.map(function(c){ return c.getObject(); });
-				this._renderTopRiskList(aRisks);
-			}.bind(this)).catch(function(e){
+			var requestId = this._topRisksRequestId = (this._topRisksRequestId || 0) + 1;
+			// Use the same records and filters as the heatmap before ranking.
+			var oList = oModel.bindList("/Risk");
+			oList.filter(this._buildODataFilters());
+			oList.requestContexts(0, 9999).then(function (aCtx) {
+				if (requestId !== this._topRisksRequestId) { return; }
+				var order = { Critical: 0, High: 1, Medium: 2, Low: 3 };
+				var aRisks = aCtx.map(function(c) { return c.getObject(); }).filter(function(risk) {
+					return risk.status !== "Closed";
+				});
+				aRisks.sort(function(a, b) {
+					var rankA = order[a.criticality] === undefined ? 4 : order[a.criticality];
+					var rankB = order[b.criticality] === undefined ? 4 : order[b.criticality];
+					return rankA - rankB || String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || String(a.ID).localeCompare(String(b.ID));
+				});
+				this._renderTopRiskList(aRisks.slice(0, 5));
+			}.bind(this)).catch(function(e) {
+				if (requestId !== this._topRisksRequestId) { return; }
 				console.error("TopRisks load failed:", e);
 				this._renderTopRiskList([]);
-			}.bind(this));
+			}.bind(this)).finally(function() { oList.destroy(); });
 		},
 
 		_renderTopRiskList: function (aRisks) {
@@ -635,13 +634,19 @@ sap.ui.define([
 		_loadFilterOptions: function () {
 			var oModel = this.getOwnerComponent().getModel();
 			if (!oModel) { return; }
-			var oCtx = oModel.bindContext("/getFilterOptions(...)");
+			oModel.bindList("/Risk", undefined, undefined, undefined, { $select: "ricefwType,priority" }).requestContexts(0, 9999).then(function(contexts) {
+                ["ricefwType", "priority"].forEach(function(key) {
+                    var values = Array.from(new Set(contexts.map(function(c) { return c.getObject()[key]; }).filter(Boolean))).sort();
+                    this._populateSelect(key === "ricefwType" ? "riskCategoryFilter" : "priorityFilter", values, key === "ricefwType" ? "All RICEFW Types" : "All Priorities");
+                }.bind(this));
+            }.bind(this)).catch(function(e) { console.error("Type and priority options failed:", e); });
+            var oCtx = oModel.bindContext("/getFilterOptions(...)");
 			oCtx.execute().then(function () {
 				var o = oCtx.getBoundContext().getObject();
 				if (!o) { return; }
 				this._populateSelect("countryFilter",      o.countries || [],      "All Releases");
 				this._populateSelect("processFilter",      o.processes || [],      "All Process Functions");
-				this._populateSelect("riskCategoryFilter", o.riskCategories || [], "All RICEFW Types");
+
 			}.bind(this)).catch(function(e){ console.error("Filter options failed:", e); });
 		},
 
@@ -673,9 +678,7 @@ sap.ui.define([
 				country:      this.byId("countryFilter")      ? this.byId("countryFilter").getSelectedKey()      : "",
 				process:      this.byId("processFilter")      ? this.byId("processFilter").getSelectedKey()      : "",
 				complexity:   this.byId("complexityFilter")   ? this.byId("complexityFilter").getSelectedKey()   : "",
-				riskCategory: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : "",
-				riskBand: this.byId("riskBandFilter") ? this.byId("riskBandFilter").getSelectedKey() : "",
-				readinessBand: this.byId("readinessBandFilter") ? this.byId("readinessBandFilter").getSelectedKey() : ""
+				ricefwType: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : "",				priority: this.byId("priorityFilter") ? this.byId("priorityFilter").getSelectedKey() : ""
 			};
 			this._updateFilterBadge();
 			this._loadHeatmap();
@@ -700,24 +703,14 @@ sap.ui.define([
 			if (f.country)      { aFilters.push(new Filter("country",      FilterOperator.EQ, f.country)); }
 			if (f.process)      { aFilters.push(new Filter("process",      FilterOperator.EQ, f.process)); }
 			if (f.complexity)   { aFilters.push(new Filter("complexity",   FilterOperator.EQ, f.complexity)); }
-			if (f.riskCategory) { aFilters.push(new Filter("riskCategory", FilterOperator.EQ, f.riskCategory)); }
-			if (f.riskBand === "Critical / High") {
-				aFilters.push(new Filter({
-					filters: [
-						new Filter("riskBand", FilterOperator.EQ, "Critical"),
-						new Filter("riskBand", FilterOperator.EQ, "High")
-					],
-					and: false
-				}));
-			} else if (f.riskBand) {
-				aFilters.push(new Filter("riskBand", FilterOperator.EQ, f.riskBand));
-			}
-			if (f.readinessBand) { aFilters.push(new Filter("readinessBand", FilterOperator.EQ, f.readinessBand)); }
+			["ricefwType", "priority"].forEach(function(key) {
+				if (f[key] !== undefined && f[key] !== "") { aFilters.push(new Filter(key, FilterOperator.EQ, f[key])); }
+			});
 			return aFilters;
 		},
 
 		onResetFilters: function () {
-			["countryFilter","processFilter","complexityFilter","riskCategoryFilter","riskBandFilter","readinessBandFilter"].forEach(function(sId) {
+			["countryFilter","processFilter","complexityFilter","riskCategoryFilter","priorityFilter"].forEach(function(sId) {
 				var oCtrl = this.byId(sId);
 				if (oCtrl) { oCtrl.setSelectedKey(""); }
 			}.bind(this));

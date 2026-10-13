@@ -59,14 +59,6 @@
 						</HBox>
 						<Title text="{dashboard>/totalRICEFs}" level="H1" class="kpiValue"/>
 					</VBox>
-					<!-- Tier 1 Objects -->
-					<VBox class="kpiCard kpiCardRed">
-						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="Tier 1 Objects" class="kpiLabel"/>
-							<core:Icon src="sap-icon://triangle-task" class="kpiIconSmall kpiIconRed"/>
-						</HBox>
-						<Title text="{dashboard>/tier1Objects}" level="H1" class="kpiValue"/>
-					</VBox>
 					<!-- Immediate Action -->
 					<VBox class="kpiCard kpiCardCritical">
 						<HBox alignItems="Center" justifyContent="SpaceBetween">
@@ -144,27 +136,11 @@
 						</Select>
 					</VBox>
 					<VBox class="filterItem">
-						<Label text="Risk Band" class="filterLabel" labelFor="riskBandFilter"/>
-						<Select id="riskBandFilter" change=".onFilterChange" class="filterSelect">
-							<items>
-								<core:Item key="" text="All Risk Bands"/>
-								<core:Item key="Critical / High" text="Critical / High"/>
-								<core:Item key="Moderate" text="Moderate"/>
-								<core:Item key="Low" text="Low"/>
-							</items>
-						</Select>
-					</VBox>
-					<VBox class="filterItem">
-						<Label text="Readiness Band" class="filterLabel" labelFor="readinessBandFilter"/>
-						<Select id="readinessBandFilter" change=".onFilterChange" class="filterSelect">
-							<items>
-								<core:Item key="" text="All Readiness Bands"/>
-								<core:Item key="Low" text="Low"/>
-								<core:Item key="Medium" text="Medium"/>
-								<core:Item key="High" text="High"/>
-							</items>
-						</Select>
-					</VBox>
+                        <Label text="Priority" class="filterLabel" labelFor="priorityFilter"/>
+                        <Select id="priorityFilter" change=".onFilterChange" class="filterSelect">
+                            <items><core:Item key="" text="All Priorities"/></items>
+                        </Select>
+                    </VBox>
 					<Button
 						text="Clear Filters"
 						icon="sap-icon://clear-filter"
@@ -180,15 +156,15 @@
 						<HBox alignItems="Center">
 							<core:Icon src="sap-icon://heat-stacked" class="panelHeaderIcon"/>
 							<VBox class="sapUiTinyMarginBegin">
-								<Title text="RICEF Risk × Readiness Heat Map" level="H4" class="panelTitle"/>
-								<Text text="Click a cell to filter · Rows and columns show the workbook's risk and readiness bands" class="panelSubtitle"/>
+								<Title text="RICEFW Type &amp; Priority Heat Map" level="H4" class="panelTitle"/>
+								<Text text="Click a cell to filter · Rows and columns show the workbook's RICEFW types and priorities" class="panelSubtitle"/>
 							</VBox>
 						</HBox>
 						<HBox alignItems="Center">
-							<SegmentedButton id="heatmapToggle" selectionChange=".onHeatmapToggle" contentMode="ContentFit" selectedKey="riskBand">
+							<SegmentedButton id="heatmapToggle" selectionChange=".onHeatmapToggle" contentMode="ContentFit" selectedKey="ricefwType">
 								<items>
-									<SegmentedButtonItem key="riskBand" text="Risk Band Rows"/>
-									<SegmentedButtonItem key="readinessBand" text="Readiness Rows"/>
+									<SegmentedButtonItem key="ricefwType" text="RICEFW Type Rows"/>
+									<SegmentedButtonItem key="priority" text="Priority Rows"/>
 								</items>
 							</SegmentedButton>
 						</HBox>
@@ -200,17 +176,18 @@
 					<!-- Legend row -->
 					<HBox class="heatmapLegend" alignItems="Center" justifyContent="SpaceBetween">
 						<HBox alignItems="Center" class="legendGroup">
+                            <HBox alignItems="Center" class="legendItem"><html:span class="legendDot" style="background: #7B1FA2"/><Text text="Critical Priority" class="legendText"/></HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendHigh"/>
-								<Text text="Critical / High" class="legendText"/>
+								<Text text="High Priority" class="legendText"/>
 							</HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendMedium"/>
-								<Text text="Moderate" class="legendText"/>
+								<Text text="Medium Priority" class="legendText"/>
 							</HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendLow"/>
-								<Text text="Low" class="legendText"/>
+								<Text text="Low Priority" class="legendText"/>
 							</HBox>
 						</HBox>
 						<Text text="Tip: Click a cell to filter the panels below" class="legendHint"/>
