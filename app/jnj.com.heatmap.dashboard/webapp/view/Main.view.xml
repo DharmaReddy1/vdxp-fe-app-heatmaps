@@ -29,6 +29,7 @@
 					<HBox alignItems="Center" class="headerActions">
 						<Button
 							text="Upload Data"
+							enabled="false"
 							icon="sap-icon://upload"
 							press=".onNavigateToUpload"
 							type="Transparent"

@@ -129,7 +129,7 @@
 										"ImportExcel": {
 											"press": "jnj.com.heatmap.risklist.ext.controller.ListReportExt.onOpenExcelUpload",
 											"text": "Import Excel",
-											"enabled": true
+											"enabled": false
 										}
 									},
 									"columns": {
