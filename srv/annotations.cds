@@ -138,6 +138,9 @@ annotate service.Risk with {
 // ─── Risk: List Report ─────────────────────────────────────────────────────────
 annotate service.Risk with @(
     UI: {
+        CreateHidden: true,
+        UpdateHidden: true,
+        DeleteHidden: true,
         HeaderInfo: {
             TypeName      : 'RICEF',
             TypeNamePlural: 'RICEFs',
