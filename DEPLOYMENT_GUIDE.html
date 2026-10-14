@@ -1,0 +1,301 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>RICEFW Heatmap Deployment Guide</title><style>body{font:15px/1.6 Arial,sans-serif;color:#172b4d;max-width:1000px;margin:40px auto;padding:0 24px}h1{color:#075985;border-bottom:3px solid #0284c7;padding-bottom:16px}h2{color:#075985;margin-top:36px;border-bottom:1px solid #cbd5e1;padding-bottom:8px}h3{margin-top:24px}pre{background:#f1f5f9;padding:16px;border:1px solid #cbd5e1;white-space:pre-wrap;overflow-wrap:anywhere}code{font:13px Consolas,monospace}p,td{overflow-wrap:anywhere}table{border-collapse:collapse;width:100%;margin:16px 0}td,th{border:1px solid #cbd5e1;padding:8px;text-align:left}th{background:#e0f2fe}a{color:#0369a1}.print{background:#e0f2fe;padding:12px}@media print{body{margin:0;max-width:none;font-size:10pt}.print{display:none}h2,h3{break-after:avoid}tr{break-inside:avoid}a{color:inherit}pre{font-size:9pt}}@page{size:A4;margin:18mm}</style></head><body><p class="print">To save as PDF: press Ctrl+P, choose Save as PDF, and use A4 paper.</p><h1>RICEFW Heatmap — SAP BTP Deployment and Operations Guide</h1>
+<p>Prepared: 14 October 2026. Commands in this document are for the Linux terminal in SAP Business Application Studio (BAS).</p>
+<h2>1. Scope and current status</h2>
+<p>This guide covers account preparation, CAP/HANA deployment, SAPUI5 packaging, Work Zone application tiles, user access, database inspection, updates, and troubleshooting.</p>
+<p>The deployment in the conversation completed successfully in a <strong>trial subaccount</strong>, organization <code>c504766ftrial</code>, space <code>dev</code>. That is a working cloud deployment; business production requires an appropriate licensed environment, configured permissions, backups, and operational ownership. Work Zone embedding and blank-page issues were discussed but were not confirmed resolved. Treat those checks as outstanding until tested.</p>
+<p>The Windows workspace and the project in BAS are separate copies. Changes made in one do not automatically reach the other. Transfer changes through your repository or copy the updated files into BAS before building.</p>
+<h3>Environment reference</h3>
+<table>
+<tr><th>Item</th><th>Value</th></tr>
+<tr><td>MTA ID</td><td><code>vdxp-fe-app-heatmap</code></td></tr>
+<tr><td>Backend</td><td><code>vdxp-fe-app-heatmap-srv</code></td></tr>
+<tr><td>Router</td><td><code>vdxp-fe-app-heatmap</code></td></tr>
+<tr><td>Database deployer</td><td><code>vdxp-fe-app-heatmap-db-deployer</code></td></tr>
+<tr><td>HDI service</td><td><code>vdxp-fe-app-heatmap-db</code></td></tr>
+<tr><td>Authentication service</td><td><code>vdxp-fe-app-heatmap-auth</code></td></tr>
+<tr><td>BAS project observed</td><td><code>/home/user/projects/vdxp-fe-app-heatmaps</code></td></tr>
+<tr><td>Router directory in supplied MTA</td><td><code>.deploy/app-router</code></td></tr>
+<tr><td>Backend destination</td><td><code>srv-api</code></td></tr>
+</table>
+<p>Router origin:</p>
+<pre><code>https://c504766ftrial-dev-vdxp-fe-app-heatmap.cfapps.us10-001.hana.ondemand.com</code></pre>
+<p>Dashboard:</p>
+<pre><code>https://c504766ftrial-dev-vdxp-fe-app-heatmap.cfapps.us10-001.hana.ondemand.com/jnj.com.heatmap.dashboard/webapp/index.html</code></pre>
+<p>List:</p>
+<pre><code>https://c504766ftrial-dev-vdxp-fe-app-heatmap.cfapps.us10-001.hana.ondemand.com/jnj.com.heatmap.risklist/webapp/index.html</code></pre>
+<p>Replace trial values when deploying to another environment. Do not store passwords, service keys, or authentication tokens in this document or Git.</p>
+<h2>2. Prepare SAP BTP</h2>
+<ol>
+<li>Create/select a subaccount in BTP Cockpit.</li>
+<li>Enable Cloud Foundry and create the deployment space.</li>
+<li>Assign the deployer Space Developer access.</li>
+<li>Allocate entitlements for Cloud Foundry runtime, SAP HANA Cloud, HANA <code>hdi-shared</code>, and XSUAA <code>application</code>.</li>
+<li>Subscribe to BAS and grant its developer role.</li>
+<li>Subscribe to SAP Build Work Zone, standard edition, if launchpad tiles are required.</li>
+<li>Create/start a HANA Cloud database and make it available to the intended Cloud Foundry organization/space.</li>
+</ol>
+<p>Find the Cloud Foundry API endpoint at <strong>Subaccount → Overview → Cloud Foundry Environment → API Endpoint</strong>. Copy it rather than deriving it from the application URL.</p>
+<p>For business production, use an approved production subaccount/space, identity provider, and database. Plan backups and restore procedures before importing business data.</p>
+<h2>3. Prepare BAS and source code</h2>
+<ol>
+<li>Create a Full Stack Cloud Application dev space in BAS.</li>
+<li>Upload or clone the entire project.</li>
+<li>Open a terminal at the root containing <code>package.json</code>.</li>
+</ol>
+<pre><code>cd /home/user/projects/vdxp-fe-app-heatmaps
+pwd
+ls
+npm install -g @sap/cds-dk mbt
+npm ci
+npm --prefix app/jnj.com.heatmap.dashboard ci
+npm --prefix app/jnj.com.heatmap.risklist ci
+cds --version
+mbt --version
+cf version</code></pre>
+<p>Use a Node.js version supported by the installed CAP and UI5 tooling. Keep dependency lock files in source control.</p>
+<p>If <code>npm ci</code> reports a package missing from the lock file, run <code>npm install</code> in the affected package directory, then <code>npm ci</code> again. Save the updated lock file. Keep <code>npm ci</code> in repeatable deployment builds.</p>
+<h2>4. Prepare the backend for production</h2>
+<p>The project has production settings for HANA and XSUAA in the root <code>package.json</code>. Check that they remain configured:</p>
+<pre><code>&quot;[production]&quot;: {
+  &quot;db&quot;: &quot;hana&quot;,
+  &quot;auth&quot;: &quot;xsuaa&quot;
+}</code></pre>
+<p>For a project without deployment files, generate them once:</p>
+<pre><code>cds add hana
+cds add xsuaa
+cds add mta
+cds add approuter</code></pre>
+<p>If the files already exist, review them instead of replacing working configuration. Generated router paths vary; this project's supplied MTA uses <code>.deploy/app-router</code>.</p>
+<h3>Production server bootstrap</h3>
+<p>The deployed backend crashed because the original <code>server.js</code> imported <code>less-openui5</code>, a local UI5 development dependency. The successful BAS deployment used:</p>
+<pre><code>import cds from '@sap/cds';
+
+export default cds.server;</code></pre>
+<p>Use this minimal root <code>server.js</code> for the standalone router deployment when no other custom server bootstrap is needed. Preserve any genuinely required custom backend middleware if you add it later. Keep local UI5 cache/theme middleware development-only.</p>
+<p>Check the generated backend after building:</p>
+<pre><code>node --check server.js
+npx cds build --production
+cat gen/srv/server.js</code></pre>
+<p>Do not edit <code>gen/srv/server.js</code> as the source fix; a subsequent build regenerates it.</p>
+<h2>5. Package both UI applications</h2>
+<p>In <code>mta.yaml</code>, use these root-level before-all commands. They build both UIs, recreate the router's generated static resources to remove stale files, and build CAP.</p>
+<pre><code>build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npm --prefix app/jnj.com.heatmap.dashboard ci
+        - npm --prefix app/jnj.com.heatmap.risklist ci
+        - npm --prefix app/jnj.com.heatmap.dashboard run build
+        - npm --prefix app/jnj.com.heatmap.risklist run build
+        - node -e &quot;require('node:fs').rmSync('.deploy/app-router/resources', { recursive: true, force: true })&quot;
+        - mkdir -p .deploy/app-router/resources/jnj.com.heatmap.dashboard/webapp
+        - mkdir -p .deploy/app-router/resources/jnj.com.heatmap.risklist/webapp
+        - cp -R app/jnj.com.heatmap.dashboard/dist/. .deploy/app-router/resources/jnj.com.heatmap.dashboard/webapp/
+        - cp -R app/jnj.com.heatmap.risklist/dist/. .deploy/app-router/resources/jnj.com.heatmap.risklist/webapp/
+        - npx cds build --production</code></pre>
+<p>The cleanup assumes <code>resources</code> contains only generated UI assets. Store manually maintained files elsewhere or adjust the build accordingly.</p>
+<p>Ensure the router package declares <code>@sap/approuter</code> in runtime dependencies, has a valid start script, and includes <code>resources</code> in its deployment artifact. Keep its package-lock synchronized too.</p>
+<h3>Router routes</h3>
+<p>Configure <code>.deploy/app-router/xs-app.json</code>:</p>
+<pre><code>{
+  &quot;welcomeFile&quot;: &quot;/jnj.com.heatmap.dashboard/webapp/index.html&quot;,
+  &quot;authenticationMethod&quot;: &quot;route&quot;,
+  &quot;routes&quot;: [
+    {
+      &quot;source&quot;: &quot;^/heatmap/(.*)$&quot;,
+      &quot;target&quot;: &quot;/heatmap/$1&quot;,
+      &quot;destination&quot;: &quot;srv-api&quot;,
+      &quot;authenticationType&quot;: &quot;xsuaa&quot;
+    },
+    {
+      &quot;source&quot;: &quot;^/(.*)$&quot;,
+      &quot;target&quot;: &quot;$1&quot;,
+      &quot;localDir&quot;: &quot;resources&quot;,
+      &quot;authenticationType&quot;: &quot;xsuaa&quot;
+    }
+  ]
+}</code></pre>
+<p>Preserve required generated settings. Keep the API route first. Do not disable CSRF protection as a general workaround for upload failures; investigate the failed request/token flow.</p>
+<h2>6. Review the MTA modules and bindings</h2>
+<p>The supplied MTA already defines:</p>
+<table>
+<tr><th>Module</th><th>Path</th><th>Required bindings</th></tr>
+<tr><td><code>vdxp-fe-app-heatmap-srv</code></td><td><code>gen/srv</code></td><td>XSUAA and HDI</td></tr>
+<tr><td><code>vdxp-fe-app-heatmap-db-deployer</code></td><td><code>gen/db</code></td><td>HDI</td></tr>
+<tr><td><code>vdxp-fe-app-heatmap</code></td><td><code>.deploy/app-router</code></td><td>XSUAA and backend destination</td></tr>
+</table>
+<p>Backend provides <code>srv-api</code> with <code>srv-url: ${default-url}</code>. Router requires it in the destinations group with:</p>
+<pre><code>properties:
+  name: srv-api
+  url: ~{srv-url}
+  forwardAuthToken: true</code></pre>
+<p>Resources are XSUAA (<code>application</code>) and HANA (<code>hdi-shared</code>). Retain the supplied authentication redirect configuration and verify it is valid for the final router route.</p>
+<h2>7. Configure application authorization</h2>
+<p>The original security file contains no business role templates. Login and tile visibility do not provide Viewer/Editor separation automatically.</p>
+<p>Before business production:</p>
+<ol>
+<li>Define roles such as HeatmapViewer and HeatmapEditor.</li>
+<li>Apply matching CAP authorization rules to entities and actions, including Excel upload.</li>
+<li>Generate/review the XSUAA scopes and role templates from those annotations.</li>
+<li>Create BTP role collections and assign the appropriate users.</li>
+<li>Test permitted and denied operations with separate accounts.</li>
+</ol>
+<p>Hiding buttons is a presentation change, not API authorization.</p>
+<h2>8. Initial build and deployment</h2>
+<p>Install the MTA plugin if missing:</p>
+<pre><code>cf plugins
+cf add-plugin-repo CF-Community https://plugins.cloudfoundry.org
+cf install-plugin multiapps -r CF-Community</code></pre>
+<p>Log in using the API endpoint copied from Cockpit:</p>
+<pre><code>cf login -a YOUR_CF_API_ENDPOINT --sso
+cf target -o c504766ftrial -s dev
+cf target</code></pre>
+<p>For a different environment, replace the organization and space. Confirm the target before deploying.</p>
+<pre><code>mbt build -t mta_archives --mtar heatmap-release.mtar
+ls -l mta_archives/heatmap-release.mtar
+cf deploy mta_archives/heatmap-release.mtar
+cf apps
+cf services</code></pre>
+<p>Success means <code>Process finished</code>, with backend and router running. The database deployer is a task-based module; it need not remain a running web application.</p>
+<p>If another operation is ongoing, abort it only after confirming it is the stale/failed deployment you intend to replace. Use its current operation ID:</p>
+<pre><code>cf deploy -i OPERATION_ID -a abort</code></pre>
+<p>Do not copy an old operation ID from a previous deployment.</p>
+<h2>9. Validate and import data</h2>
+<p>Open the direct dashboard and list URLs before adding Work Zone tiles. Confirm:</p>
+<ul>
+<li>Login completes.</li>
+<li>Dashboard and list render.</li>
+<li>Excel upload completes and reports its record count.</li>
+<li>RICEFW Type/Priority heatmap displays counts and aligned colors.</li>
+<li>Selecting a cell filters Top Risk Areas.</li>
+<li>Clicking a risk opens the selected object's page.</li>
+<li>List identifier shows RICEFW with WRICEF Name.</li>
+<li>Imported data remains after refresh/restart.</li>
+</ul>
+<p>A completed Excel import writes records to the deployed HANA container. Partial imports can save successful rows while reporting errors. The current backend rejects Replace existing records in production. Import with replacement unchecked.</p>
+<p>The file picker permits 10 MB, but base64 encoding increases request size and the backend body limit is 10 MB. Therefore files near the picker maximum may exceed the request limit; align limits deliberately if larger uploads are needed.</p>
+<h2>10. Create Work Zone application tiles</h2>
+<ol>
+<li>Subscribe to SAP Build Work Zone, standard edition.</li>
+<li>Assign administrators <code>Launchpad_Admin</code> and open Site Manager.</li>
+<li>In Site Directory, create <code>RICEFW Management</code>.</li>
+<li>In Site Settings, choose <strong>Spaces and Pages – New Experience</strong> and save.</li>
+<li>Open Content Manager → Create → App.</li>
+</ol>
+<p>Create these URL apps:</p>
+<table>
+<tr><th>Setting</th><th>Dashboard</th><th>List</th></tr>
+<tr><td>Title</td><td>Heatmap Dashboard</td><td>RICEF List</td></tr>
+<tr><td>Technology</td><td>URL</td><td>URL</td></tr>
+<tr><td>System</td><td>No System</td><td>No System</td></tr>
+<tr><td>Semantic Object</td><td>RiskHeatmap</td><td>RiskList</td></tr>
+<tr><td>Action</td><td>display</td><td>manage</td></tr>
+<tr><td>URL</td><td>Direct dashboard URL above</td><td>Direct list URL above</td></tr>
+</table>
+<p>Initially choose <strong>Open App: In a new tab</strong>, save, and validate each tile. URL tiles are manually registered links; this deployment does not publish the apps into the HTML5 repository for automatic content-provider discovery.</p>
+<h3>Put tiles on the home page</h3>
+<ol>
+<li>Create Page <code>RICEFW Applications</code> and add a section containing both apps.</li>
+<li>Create Space <code>RICEFW Management</code> and assign that Page to it.</li>
+<li>Assign both apps and the Space to the intended content role.</li>
+<li>Assign the role to the site where required.</li>
+<li>Save and open the site through Site Directory.</li>
+</ol>
+<p>For a trial demo, Everyone can be used. It is implicit for all site users and has no corresponding BTP role collection. For restricted production access, use a dedicated content role and its corresponding BTP role collection.</p>
+<p>Groups mode displays groups, not configured Spaces/Pages. Match the site mode to the content you create.</p>
+<h2>11. Optional: allow in-place embedding</h2>
+<p>The router normally sends <code>X-Frame-Options: SAMEORIGIN</code>. Work Zone runs on a different origin, so embedded display can be blocked.</p>
+<p>If in-place display is required, add these properties to the <strong>router module</strong>, alongside <code>parameters</code>, while retaining its existing requires/provides:</p>
+<pre><code>properties:
+  SEND_XFRAMEOPTIONS: &quot;false&quot;
+  httpHeaders: &gt;-
+    [{&quot;Content-Security-Policy&quot;:&quot;frame-ancestors 'self' https://c504766ftrial.launchpad.cfapps.us10.hana.ondemand.com&quot;}]</code></pre>
+<p>Replace the Work Zone origin with the exact origin of the intended site, without <code>/site</code> or query parameters. Preserve other HTTP headers if already configured; review any existing CSP policies because multiple policies are jointly enforced.</p>
+<p>Rebuild/redeploy, sign into the direct app once, then test the in-place tile. Authentication redirects or browser cookie rules may impose separate restrictions. Confirm the blocked URL and response headers in browser developer tools. Do not allow arbitrary frame origins to bypass the error.</p>
+<p>For native launchpad integration beyond URL tiles, plan HTML5 Application Repository/managed-router integration separately; it is not included in the current standalone MTA.</p>
+<h2>12. Give access to other users</h2>
+<ol>
+<li>In BTP → Security → Users, add the person under the identity provider they actually use.</li>
+<li>Assign the Work Zone end-user role collection available for the subscription, commonly <code>Launchpad_External_User</code>.</li>
+<li>For dedicated content roles, assign the corresponding role collection to the user and ensure that role is assigned to the site.</li>
+<li>Assign the CAP application's Viewer/Editor role collection if implemented.</li>
+<li>Share the Work Zone site URL and test with the user's own account.</li>
+</ol>
+<p>Business users do not need Space Developer or Launchpad_Admin. Everyone controls content visibility; it does not replace backend authorization.</p>
+<h2>13. Inspect uploaded data in HANA</h2>
+<h3>Open tools versus connect to app data</h3>
+<p>Opening Explorer from HANA Cloud may request DBADMIN credentials: this is the password chosen when the database was created. It is different from BTP credentials and the application service-key password. If forgotten, use the available administrator reset process or contact the database administrator.</p>
+<p>For application data, create an HDI container connection to <code>vdxp-fe-app-heatmap-db</code>, or add a separate SAP HANA Database connection using its service key.</p>
+<ol>
+<li>BTP → dev → Service Instances → <code>vdxp-fe-app-heatmap-db</code>.</li>
+<li>Open Service Keys; create a dedicated inspection key if needed.</li>
+<li>In Explorer, click + and select HDI Container if available. Select the intended service.</li>
+<li>Alternatively select SAP HANA Database and enter service-key <code>host</code>, <code>port</code>, <code>user</code>, <code>password</code>, enable TLS, and select the key's <code>schema</code>.</li>
+<li>Use <code>user</code>/<code>password</code> for data access; <code>hdi_user</code>/<code>hdi_password</code> are deployment credentials.</li>
+</ol>
+<p>The observed schema was <code>3E165E1963CC4A3BA02D79F5DCFC1B99</code>. Retrieve the current value from the service key; a new environment/container will have another schema.</p>
+<p>Run on the container-authorized connection:</p>
+<pre><code>SELECT COUNT(*) AS &quot;RECORD_COUNT&quot;
+FROM &quot;3E165E1963CC4A3BA02D79F5DCFC1B99&quot;.&quot;JNJ_COM_HEATMAP_RISK&quot;;
+
+SELECT TOP 100 &quot;RICEFW&quot;, &quot;WRICEFNAME&quot;, &quot;RICEFWTYPE&quot;, &quot;PRIORITY&quot;
+FROM &quot;3E165E1963CC4A3BA02D79F5DCFC1B99&quot;.&quot;JNJ_COM_HEATMAP_RISK&quot;;</code></pre>
+<p>If the table browser says DBADMIN above Search Tables, it is filtering the DBADMIN schema. Select the application's schema. DBADMIN may see the table definition but still lack SELECT privileges on HDI-owned data: use the authorized container connection. For routine production inspection, have an administrator provision a dedicated read-only user/role rather than distribute runtime credentials.</p>
+<h2>14. Hide Create/Edit/Delete temporarily</h2>
+<p>In <code>srv/annotations.cds</code>, add inside the Risk UI annotation containing HeaderInfo:</p>
+<pre><code>CreateHidden: true,
+UpdateHidden: true,
+DeleteHidden: true,</code></pre>
+<p>This hides list Create/Delete and Risk object-page Edit/Delete. Remove the ImportExcel action's <code>position</code> that anchors to StandardAction::Create in the risk-list manifest. Keep the import action itself.</p>
+<p>These are the requested Risk controls; related child entities have their own annotations. Backend authorization must still enforce allowed operations.</p>
+<h2>15. Repeatable update/redeployment</h2>
+<ol>
+<li>Synchronize changed source from Windows/Git to BAS.</li>
+<li>Review changes and the target environment; update dependency lock files only when dependencies changed.</li>
+<li>Increment the MTA version for tracked releases and retain the previous archive.</li>
+<li>Build and deploy:</li>
+</ol>
+<pre><code>cf target
+mbt build -t mta_archives --mtar heatmap-updated.mtar
+cf deploy mta_archives/heatmap-updated.mtar
+cf apps</code></pre>
+<ol>
+<li>Hard-refresh the UI and repeat the validation checks.</li>
+</ol>
+<p>A normal update retains the existing HDI service and data. Do not delete/recreate the database service. Review schema migrations before deployment; retaining the service does not make destructive schema changes harmless. Reverting application code alone may not reverse a database migration.</p>
+<h2>16. Troubleshooting reference</h2>
+<table>
+<tr><th>Symptom</th><th>Check/action</th></tr>
+<tr><td><code>npm ci</code> EUSAGE, missing package in lock</td><td>Run npm install in the affected package, save lock file, retry npm ci.</td></tr>
+<tr><td>Backend crashes on <code>less-openui5</code></td><td>Remove development-only import/middleware from production bootstrap; inspect gen/srv/server.js; build a fresh archive.</td></tr>
+<tr><td>Existing MTA operation</td><td>Confirm current failed operation ID and abort before deploying the corrected archive.</td></tr>
+<tr><td>No Work Zone tiles</td><td>Verify app → page → space → content role → site assignments, user role, and site view mode.</td></tr>
+<tr><td>In-place refused to connect</td><td>Check X-Frame-Options/CSP on the blocked response; allow exact Work Zone origin or use new-tab launch.</td></tr>
+<tr><td>Blank standalone page</td><td>Inspect Network for Component.js, manifest.json, fragments, SAPUI5 libraries, and /heatmap/$metadata. Verify response content, not just status.</td></tr>
+<tr><td><code>favicon.ico</code> 404</td><td>Missing browser icon; does not explain a blank application.</td></tr>
+<tr><td><code>unload</code> permissions warning</td><td>Does not by itself identify the startup failure; inspect component/API requests and actual errors.</td></tr>
+<tr><td>No tables under DBADMIN</td><td>Select the app HDI schema or add its container connection.</td></tr>
+<tr><td>HANA error 258 / insufficient privilege</td><td>Current user lacks object access; use the authorized container connection.</td></tr>
+<tr><td>Authentication failed</td><td>Confirm selected database/user/password; distinguish DBADMIN and service-key credentials.</td></tr>
+<tr><td>Upload HTTP 413</td><td>Check base64-expanded payload against backend and proxy request limits.</td></tr>
+<tr><td>Upload HTTP 403</td><td>Check application roles, production replacement flag, and CSRF/login flow.</td></tr>
+</table>
+<p>Useful commands:</p>
+<pre><code>cf logs vdxp-fe-app-heatmap-srv --recent
+cf logs vdxp-fe-app-heatmap --recent
+cf logs vdxp-fe-app-heatmap-db-deployer --recent
+cf tasks vdxp-fe-app-heatmap-db-deployer
+cf dmol -i CURRENT_OPERATION_ID</code></pre>
+<p>Before a business release, verify role enforcement with separate accounts, database backup/restore readiness, monitoring and support ownership, upload limits, supported SAPUI5/Node versions, and direct/Work Zone navigation. The observed dashboard runtime bootstrap and UI build configurations use different SAPUI5 versions; align and validate them as part of release preparation.</p>
+<h2>17. Official references</h2>
+<ul>
+<li><a href="https://cap.cloud.sap/docs/guides/deploy/to-cf">CAP deployment to Cloud Foundry</a></li>
+<li><a href="https://cap.cloud.sap/docs/guides/security/authorization">CAP authorization</a></li>
+<li><a href="https://www.npmjs.com/package/@sap/approuter">SAP application router settings</a></li>
+<li><a href="https://developers.sap.com/tutorials/cp-portal-cloud-foundry-url-applaunchpad/">Create Work Zone URL apps</a></li>
+<li><a href="https://developers.sap.com/tutorials/cp-portal-cloud-foundry-spaces-pages">Work Zone Spaces and Pages</a></li>
+<li><a href="https://help.sap.com/docs/build-work-zone-standard-edition/sap-build-work-zone-standard-edition/federation-assign-content-to-role">Assign content to a Work Zone role</a></li>
+<li><a href="https://developers.sap.com/tutorials/hana-dbx-connections">HANA Database Explorer connections</a></li>
+</ul>
+<p>This guide records the project-specific configuration and troubleshooting from the session. It is not a certification that all business-production checks have been completed.</p></body></html>
