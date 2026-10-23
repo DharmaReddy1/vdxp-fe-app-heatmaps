@@ -51,6 +51,7 @@ sap.ui.define([
 				greeting: greeting,
 				lastRefreshed: "Refreshing...",
 				totalRICEFs: "--",
+				ricefRecordCount: 0,
 				tier1Objects: "--",
 				immediateAction: "--",
 				mitigationRequired: "--",
@@ -326,19 +327,16 @@ sap.ui.define([
 			var oModel = this.getOwnerComponent().getModel();
 			if (!oModel) { return; }
 			var requestId = this._topRisksRequestId = (this._topRisksRequestId || 0) + 1;
-			// Use the same records and filters as the heatmap before ranking.
+			// Keep this panel independent of dashboard filters: show open Critical records only.
 			var oList = oModel.bindList("/Risk");
-			oList.filter(this._buildODataFilters());
+			oList.filter([new Filter("criticality", FilterOperator.EQ, "Critical")]);
 			oList.requestContexts(0, 9999).then(function (aCtx) {
 				if (requestId !== this._topRisksRequestId) { return; }
-				var order = { Critical: 0, High: 1, Medium: 2, Low: 3 };
 				var aRisks = aCtx.map(function(c) { return c.getObject(); }).filter(function(risk) {
-					return risk.status !== "Closed";
+					return risk.criticality === "Critical" && risk.status !== "Closed";
 				});
 				aRisks.sort(function(a, b) {
-					var rankA = order[a.criticality] === undefined ? 4 : order[a.criticality];
-					var rankB = order[b.criticality] === undefined ? 4 : order[b.criticality];
-					return rankA - rankB || String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || String(a.ID).localeCompare(String(b.ID));
+					return String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || String(a.ID).localeCompare(String(b.ID));
 				});
 				this._renderTopRiskList(aRisks.slice(0, 5));
 			}.bind(this)).catch(function(e) {
@@ -354,7 +352,7 @@ sap.ui.define([
 			oList.removeAllItems();
 			if (!aRisks || aRisks.length === 0) {
 				var oEmpty = new CustomListItem();
-				oEmpty.addContent(new Text({ text: "No risk data available", wrapping: false }).addStyleClass("sapUiSmallMargin"));
+				oEmpty.addContent(new Text({ text: "No critical risks available", wrapping: false }).addStyleClass("sapUiSmallMargin"));
 				oList.addItem(oEmpty);
 				return;
 			}
@@ -394,6 +392,7 @@ sap.ui.define([
 		_loadInvestigationQueue: function () {
 			var oModel = this.getOwnerComponent().getModel();
 			if (!oModel) { return; }
+			var requestId = this._ricefRequestId = (this._ricefRequestId || 0) + 1;
 
 			var oList = oModel.bindList(
 				"/Risk",
@@ -407,6 +406,7 @@ sap.ui.define([
 
 			oList.filter(this._buildODataFilters());
 			oList.requestContexts(0, 9999).then(function (aCtx) {
+				if (requestId !== this._ricefRequestId) { return; }
 
 				var aRisks = aCtx.map(function(c) {
 					return c.getObject();
@@ -416,12 +416,13 @@ sap.ui.define([
 				this._filterRicefRecords();
 
 			}.bind(this)).catch(function(e) {
+				if (requestId !== this._ricefRequestId) { return; }
 
 				console.error("RICEF list load failed:", e);
 				this._ricefRecords = [];
-				this._renderInvestigationQueue([]);
+				this._filterRicefRecords();
 
-			}.bind(this));
+			}.bind(this)).finally(function() { oList.destroy(); });
 		},
 
 		onRicefSearch: function (oEvent) {
@@ -435,6 +436,7 @@ sap.ui.define([
 				return !query || [risk.ricefw, risk.riskId, risk.ricefId, risk.wricefName, risk.riskTitle, risk.processFunction, risk.process, risk.scrumTeam, risk.release]
 					.join(" ").toLowerCase().includes(query);
 			});
+			this.getView().getModel("dashboard").setProperty("/ricefRecordCount", records.length);
 			this._renderInvestigationQueue(records.slice(0, 5));
 		},
 
@@ -451,7 +453,7 @@ sap.ui.define([
 					rank: String(index + 1),
 					criticality: risk.criticality || "",
 					title: [risk.ricefw || risk.riskId, risk.wricefName || risk.riskTitle].filter(Boolean).join(" – "),
-					description: [risk.processFunction || risk.process, risk.release || risk.country].filter(Boolean).join(" – "),
+					description: [risk.processFunction || risk.process, risk.ricefwType, risk.release || risk.country].filter(Boolean).join(" – "),
 					readinessBand: risk.readinessBand || ""
 				};
 			}));
@@ -608,11 +610,27 @@ sap.ui.define([
 		_loadComplexityProfile: function () {
 			var oModel = this.getOwnerComponent().getModel();
 			if (!oModel) { return; }
-			var oList = oModel.bindList("/ComplexityProfile");
-			oList.requestContexts(0, 10).then(function (aCtx) {
-				var aData = aCtx.map(function(c){ return c.getObject(); });
+			var requestId = this._complexityRequestId = (this._complexityRequestId || 0) + 1;
+			// Filter source records before counting; the summary view has no type/priority fields.
+			var oList = oModel.bindList("/Risk");
+			oList.filter(this._buildODataFilters());
+			oList.requestContexts(0, 9999).then(function (aCtx) {
+				if (requestId !== this._complexityRequestId) { return; }
+				var counts = new Map();
+				var order = { High: 1, Medium: 2, Low: 3 };
+				aCtx.forEach(function(context) {
+					var complexity = context.getObject().complexity || "";
+					counts.set(complexity, (counts.get(complexity) || 0) + 1);
+				});
+				var aData = Array.from(counts, function(entry) {
+					return { complexity: entry[0], count: entry[1], sortOrder: order[entry[0]] || 4 };
+				});
 				this._renderComplexityBars(aData);
-			}.bind(this)).catch(function(e){ console.error("Complexity profile failed:", e); });
+			}.bind(this)).catch(function(e) {
+				if (requestId !== this._complexityRequestId) { return; }
+				console.error("Complexity profile failed:", e);
+				this._renderComplexityBars([]);
+			}.bind(this)).finally(function() { oList.destroy(); });
 		},
 
 		_renderComplexityBars: function (aData) {
@@ -767,6 +785,38 @@ sap.ui.define([
 				});
 			} else {
 				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html#/" + route;
+			}
+		},
+
+		onViewAllRicefRecords: function () {
+			var params = {};
+			var filters = this._activeFilters || {};
+			["country", "process", "complexity", "ricefwType", "priority"].forEach(function(key) {
+				if (filters[key]) { params[key] = filters[key]; }
+			});
+			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
+				sap.ushell.Container.getService("CrossApplicationNavigation");
+			if (oCrossAppNav) {
+				oCrossAppNav.toExternal({
+					target: { semanticObject: "RiskList", action: "manage" },
+					params: params
+				});
+			} else {
+				var query = new URLSearchParams(params).toString();
+				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html" + (query ? "?" + query : "");
+			}
+		},
+
+		onViewAllCriticalRisks: function () {
+			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
+				sap.ushell.Container.getService("CrossApplicationNavigation");
+			if (oCrossAppNav) {
+				oCrossAppNav.toExternal({
+					target: { semanticObject: "RiskList", action: "manage" },
+					params: { criticality: "Critical" }
+				});
+			} else {
+				window.location.href = "/jnj.com.heatmap.risklist/webapp/index.html?criticality=Critical";
 			}
 		},
 
