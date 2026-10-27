@@ -51,6 +51,15 @@
 		"archeType": "transactional"
 	},
 	"sap.ui5": {
+		"extends": {
+			"extensions": {
+				"sap.ui.controllerExtensions": {
+					"sap.fe.templates.ListReport.ListReportController": {
+						"controllerName": "jnj.com.heatmap.risklist.ext.controller.StartupFilters"
+					}
+				}
+			}
+		},
 		"flexEnabled": true,
 		"dependencies": {
 			"minUI5Version": "1.120.0",
