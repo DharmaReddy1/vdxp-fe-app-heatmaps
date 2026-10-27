@@ -148,6 +148,10 @@ annotate service.Risk with @(
             Description   : { Value: ricefw }
         },
         SelectionFields: [
+            ricefwType,
+            country,
+            process,
+            tier,
             release,
             processFunction,
             priority,

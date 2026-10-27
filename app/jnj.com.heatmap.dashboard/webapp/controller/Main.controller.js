@@ -13,8 +13,10 @@ sap.ui.define([
 	"sap/ui/core/Icon",
 	"sap/ui/core/Item",
 	"sap/ui/model/Filter",
-	"sap/ui/model/FilterOperator"
-], function (BaseController, JSONModel, MessageToast, UploadDialog, CustomListItem, FlexItemData, HBox, VBox, Text, Title, HTML, Icon, Item, Filter, FilterOperator) {
+	"sap/ui/model/FilterOperator",
+	"sap/ui/generic/app/navigation/service/NavigationHandler",
+	"sap/ui/generic/app/navigation/service/SelectionVariant"
+], function (BaseController, JSONModel, MessageToast, UploadDialog, CustomListItem, FlexItemData, HBox, VBox, Text, Title, HTML, Icon, Item, Filter, FilterOperator, NavigationHandler, SelectionVariant) {
 	"use strict";
 
 	// Color mapping
@@ -791,15 +793,25 @@ sap.ui.define([
 		onViewAllRicefRecords: function () {
 			var params = {};
 			var filters = this._activeFilters || {};
-			["country", "process", "complexity", "ricefwType", "priority"].forEach(function(key) {
-				if (filters[key]) { params[key] = filters[key]; }
+			["country", "process", "complexity", "ricefwType", "priority", "tier"].forEach(function(key) {
+				if (filters[key] !== undefined && filters[key] !== "") {
+					params[key] = filters[key] === null ? "" : filters[key];
+				}
 			});
 			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
 				sap.ushell.Container.getService("CrossApplicationNavigation");
 			if (oCrossAppNav) {
-				oCrossAppNav.toExternal({
-					target: { semanticObject: "RiskList", action: "manage" },
-					params: params
+				// Carry filter conditions in xAppState so FE applies them on inbound navigation.
+				var selectionVariant = new SelectionVariant();
+				Object.keys(params).forEach(function(key) {
+					selectionVariant.addSelectOption(key, "I", "EQ", params[key]);
+				});
+				if (!this._riskNavigationHandler) {
+					this._riskNavigationHandler = new NavigationHandler(this);
+				}
+				this._riskNavigationHandler.navigate("RiskList", "manage", selectionVariant.toJSONString(), undefined, function(error) {
+					console.error("Risk list navigation failed:", error);
+					MessageToast.show("Could not open the filtered risk list. Please try again.");
 				});
 			} else {
 				var query = new URLSearchParams(params).toString();

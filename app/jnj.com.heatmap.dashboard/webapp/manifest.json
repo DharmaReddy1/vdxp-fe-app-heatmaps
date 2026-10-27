@@ -58,7 +58,8 @@
         "sap.f": {},
         "sap.suite.ui.commons": {},
         "sap.viz": {},
-        "sap.ui.unified": {}
+        "sap.ui.unified": {},
+        "sap.ui.generic.app": {}
       }
     },
     "contentDensities": {

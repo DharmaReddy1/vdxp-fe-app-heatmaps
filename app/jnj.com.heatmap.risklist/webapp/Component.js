@@ -15,7 +15,7 @@ sap.ui.define([
             var hash = window.location.hash || "";
             var legacyQuery = new URLSearchParams(hash.startsWith("#?") ? hash.slice(2) : "");
             this._oStartupFilters = {};
-            ["country", "process", "complexity", "ricefwType", "priority", "riskSeverity", "criticality", "status"].forEach(function(key) {
+            ["country", "process", "complexity", "ricefwType", "priority", "tier", "riskSeverity", "criticality", "status"].forEach(function(key) {
                 var value = query.get(key) || legacyQuery.get(key);
                 if (value) { this._oStartupFilters[key] = value; }
             }.bind(this));
