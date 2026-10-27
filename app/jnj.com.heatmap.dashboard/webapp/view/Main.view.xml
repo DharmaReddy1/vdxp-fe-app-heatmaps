@@ -55,7 +55,7 @@
 					<!-- Total RICEFs -->
 					<VBox class="kpiCard kpiCardBlue">
 						<HBox alignItems="Center" justifyContent="SpaceBetween">
-							<Text text="Total RICEFs" class="kpiLabel"/>
+							<Text text="Total RICEFW" class="kpiLabel"/>
 							<core:Icon src="sap-icon://document-text" class="kpiIconSmall kpiIconBlue"/>
 						</HBox>
 						<Title text="{dashboard>/totalRICEFs}" level="H1" class="kpiValue"/>
@@ -198,16 +198,30 @@
 				<!-- ═══ BOTTOM PANELS ROW ════════════════════════════════════ -->
 				<HBox class="bottomPanelsRow" alignItems="Stretch">
 
-					<!-- Top Risk Areas -->
-					<VBox class="bottomPanel panelCard">
+					<!-- Searchable RICEF list -->
+					<VBox class="bottomPanel panelCard ricefPanel sapUiSizeCompact">
 						<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
 							<HBox alignItems="Center">
-								<core:Icon src="sap-icon://status-negative" class="panelHeaderIcon panelHeaderIconRed"/>
-								<Title text="Top Risk Areas" level="H4" class="panelTitle sapUiSmallMarginBegin"/>
+								<core:Icon src="sap-icon://activity-2" class="panelHeaderIcon panelHeaderIconOrange"/>
+								<Title text="{= 'RICEF Records (' + ${dashboard>/ricefRecordCount} + ')' }" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
 							</HBox>
-							<Link text="View all →" press=".onViewAllRisks" class="viewAllLink"/>
+							<Link text="View all →" press=".onViewAllRicefRecords" class="viewAllLink"/>
 						</HBox>
-						<List id="topRiskList" noDataText="No risks found" showSeparators="None" class="topRiskList " />
+						<SearchField id="ricefSearch" placeholder="Search RICEF ID or name" liveChange=".onRicefSearch" search=".onRicefSearch" width="100%" class="sapUiTinyMarginBottom"/>
+						<List id="investigationList" items="{ricefs>/records}" noDataText="No matching RICEFs" showSeparators="None" class="topRiskList">
+							<CustomListItem type="Navigation" press=".onRicefPress">
+								<HBox alignItems="Center" justifyContent="SpaceBetween" class="topRiskRow">
+									<HBox alignItems="Center" class="ricefRowContent">
+										<Text text="{ricefs>rank}" class="riskRank"/>
+										<VBox class="ricefRowText">
+											<Text text="{ricefs>title}" wrapping="false" class="riskTitle"/>
+											<Text text="{ricefs>description}" tooltip="{ricefs>description}" wrapping="false" class="riskSubtitle"/>
+										</VBox>
+									</HBox>
+									<Text text="{ricefs>criticality}" class="critBadge ricefCriticality"/>
+								</HBox>
+							</CustomListItem>
+						</List>
 					</VBox>
 
 					<!-- Risk Distribution -->
@@ -275,30 +289,16 @@
 
 					</VBox>
 
-					<!-- Searchable RICEF list -->
-					<VBox class="bottomPanel panelCard ricefPanel sapUiSizeCompact">
+					<!-- Top Risk Areas -->
+					<VBox class="bottomPanel panelCard">
 						<HBox alignItems="Center" justifyContent="SpaceBetween" class="panelHeader">
 							<HBox alignItems="Center">
-								<core:Icon src="sap-icon://activity-2" class="panelHeaderIcon panelHeaderIconOrange"/>
-								<Title text="RICEF Records" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+								<core:Icon src="sap-icon://status-negative" class="panelHeaderIcon panelHeaderIconRed"/>
+								<Title text="Top Risk Areas" level="H4" class="panelTitle sapUiSmallMarginBegin"/>
 							</HBox>
-							<Link text="View all →" press=".onViewAllRisks" class="viewAllLink"/>
+							<Link text="View all →" press=".onViewAllCriticalRisks" class="viewAllLink"/>
 						</HBox>
-						<SearchField id="ricefSearch" placeholder="Search RICEF ID or name" liveChange=".onRicefSearch" search=".onRicefSearch" width="100%" class="sapUiTinyMarginBottom"/>
-						<List id="investigationList" items="{ricefs>/records}" noDataText="No matching RICEFs" showSeparators="None" class="topRiskList">
-							<CustomListItem type="Navigation" press=".onRicefPress">
-								<HBox alignItems="Center" justifyContent="SpaceBetween" class="topRiskRow">
-									<HBox alignItems="Center" class="ricefRowContent">
-										<Text text="{ricefs>rank}" class="riskRank"/>
-										<VBox class="ricefRowText">
-											<Text text="{ricefs>title}" wrapping="false" class="riskTitle"/>
-											<Text text="{ricefs>description}" wrapping="false" class="riskSubtitle"/>
-										</VBox>
-									</HBox>
-									<Text text="{ricefs>criticality}" class="critBadge ricefCriticality"/>
-								</HBox>
-							</CustomListItem>
-						</List>
+						<List id="topRiskList" noDataText="No critical risks found" showSeparators="None" class="topRiskList " />
 					</VBox>
 
 					<!-- Complexity Profile -->
