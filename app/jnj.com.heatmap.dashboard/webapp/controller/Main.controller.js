@@ -46,7 +46,7 @@ sap.ui.define([
 
 		onInit: function () {
 			var h = new Date().getHours();
-			var greeting = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+			var greeting = h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening";
 
 			// Dashboard model
 			var oDashModel = new JSONModel({
@@ -101,9 +101,9 @@ sap.ui.define([
 				var h = now.getHours();
 				var ampm = h >= 12 ? "PM" : "AM";
 				var h12 = h % 12 || 12;
-				let greeting = h < 12 ? "Good morning" : h < 17 ? "Good afternoon" : "Good evening";
+				let greeting = h < 12 ? "Good Morning" : h < 17 ? "Good Afternoon" : "Good Evening";
 				const oIcon = this.byId("greeringIcon");
-				greeting === "Good morning" ? oIcon.setSrc("sap-icon://light-mode") : greeting === "Good afternoon" ? oIcon.setSrc("sap-icon://general-leave-request") : oIcon.setSrc("sap-icon://dark-mode");
+				greeting === "Good Morning" ? oIcon.setSrc("sap-icon://light-mode") : greeting === "Good Afternoon" ? oIcon.setSrc("sap-icon://general-leave-request") : oIcon.setSrc("sap-icon://dark-mode");
 				oDash.setProperty("/greeting", greeting);	
 				oDash.setProperty("/lastRefreshed",
 					"Last refreshed: " + pad(now.getDate()) + " " + months[now.getMonth()] +
@@ -248,7 +248,7 @@ sap.ui.define([
 			aData.forEach(function(d){ if ((d.count || 0) > maxCount) { maxCount = d.count; } });
 
 			// Build HTML table
-			var colHeaderLabel = mode === "ricefwType" ? "RICEFW Type \\ Priority" : "Priority \\ RICEFW Type";
+			var colHeaderLabel = mode === "ricefwType" ? "RICEFW Type / Priority" : "Priority / RICEFW Type";
 			var html = '<div class="heatmapScrollWrapper"><table class="heatmapTable">' +
 				'<thead><tr><th class="heatmapCornerHeader">' + colHeaderLabel + '</th>';
 			colSet.forEach(function(c) {
@@ -366,7 +366,7 @@ sap.ui.define([
 					alignItems: "Center",
 					layoutData: new FlexItemData({ growFactor: 1, shrinkFactor: 1, baseSize: "0%", minWidth: "0" })
 				}).addStyleClass("topRiskContent");
-				var oRank = new Text({ text: String(idx + 1), layoutData: new FlexItemData({ shrinkFactor: 0 }) }).addStyleClass("riskRank rank" + (idx + 1));
+				var oRank = new Text({ text: String(idx + 1), layoutData: new FlexItemData({ shrinkFactor: 0 }) }).addStyleClass("riskRank");
 				var oInfo = new VBox({
 					layoutData: new FlexItemData({ growFactor: 1, shrinkFactor: 1, baseSize: "0%", minWidth: "0" })
 				}).addStyleClass("topRiskText");
@@ -640,7 +640,7 @@ sap.ui.define([
 			if (!oBars) { return; }
 			oBars.destroyItems();
 			var max = aData.reduce(function(m, d){ return Math.max(m, d.count || 0); }, 1);
-			var colorOrder = { "High": COLOR_MAP["High"], "Medium": COLOR_MAP["Medium"], "Low": COLOR_MAP["Low"], "Normal": COLOR_MAP["Normal"] };
+			var colorOrder = { "Complex": COLOR_MAP["Critical"], "High": COLOR_MAP["High"], "Medium": COLOR_MAP["Medium"], "Low": COLOR_MAP["Low"], "Normal": COLOR_MAP["Normal"] };
 			// Sort by defined order
 			aData.sort(function(a, b){ return (a.sortOrder || 99) - (b.sortOrder || 99); });
 			aData.forEach(function(d) {

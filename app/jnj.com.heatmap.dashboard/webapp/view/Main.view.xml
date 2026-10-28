@@ -29,6 +29,7 @@
 					<HBox alignItems="Center" class="headerActions">
 						<Button
 							text="Upload Data"
+							visible="false"
 							enabled="false"
 							icon="sap-icon://upload"
 							press=".onNavigateToUpload"
@@ -212,13 +213,22 @@
 							<CustomListItem type="Navigation" press=".onRicefPress">
 								<HBox alignItems="Center" justifyContent="SpaceBetween" class="topRiskRow">
 									<HBox alignItems="Center" class="ricefRowContent">
-										<Text text="{ricefs>rank}" class="riskRank"/>
+										<layoutData><FlexItemData growFactor="1" shrinkFactor="1" baseSize="0%" minWidth="0"/></layoutData>
+										<Text text="{ricefs>rank}" class="riskRank">
+											<layoutData><FlexItemData shrinkFactor="0"/></layoutData>
+										</Text>
 										<VBox class="ricefRowText">
-											<Text text="{ricefs>title}" wrapping="false" class="riskTitle"/>
-											<Text text="{ricefs>description}" tooltip="{ricefs>description}" wrapping="false" class="riskSubtitle"/>
+											<layoutData><FlexItemData growFactor="1" shrinkFactor="1" baseSize="0%" minWidth="0"/></layoutData>
+											<Text text="{ricefs>title}" tooltip="{ricefs>title}" width="100%" wrapping="false" class="riskTitle"/>
+											<Text text="{ricefs>description}" tooltip="{ricefs>description}" width="100%" wrapping="false" class="riskSubtitle"/>
 										</VBox>
 									</HBox>
-									<Text text="{ricefs>criticality}" class="critBadge ricefCriticality"/>
+									<Text text="{ricefs>criticality}" wrapping="false" class="critBadge ricefCriticality">
+										<layoutData><FlexItemData growFactor="0" shrinkFactor="0"/></layoutData>
+										<customData>
+											<core:CustomData key="criticality" value="{ricefs>criticality}" writeToDom="true"/>
+										</customData>
+									</Text>
 								</HBox>
 							</CustomListItem>
 						</List>

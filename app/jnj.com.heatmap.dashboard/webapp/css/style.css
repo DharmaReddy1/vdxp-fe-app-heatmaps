@@ -463,9 +463,6 @@ html, body {
 
     margin-right: 0.5rem;
 }
-.rank1 { background: #EF4444 !important; color: #fff !important; }
-.rank2 { background: #F59E0B !important; color: #fff !important; }
-.rank3 { background: #EAB308 !important; color: #fff !important; }
 
 .riskTitle   { font-size: 0.8rem !important; font-weight: 600 !important; color: #111827 !important; }
 .riskSubtitle { font-size: 0.72rem !important; color: #6B7280 !important; }
@@ -502,7 +499,13 @@ html, body {
 .ricefPanel .sapMSF { max-width: 100%; }
 .ricefRowContent { flex: 1; min-width: 0; margin-right: 0.5rem; }
 .ricefRowText { flex: 1; min-width: 0; }
+.ricefRowText .sapMText { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .ricefCriticality { background: #F3F4F6; color: #374151; }
+.ricefCriticality[data-criticality="Critical"] { background: #7B1FA2; color: #fff; }
+.ricefCriticality[data-criticality="High"] { background: #E53935; color: #fff; }
+.ricefCriticality[data-criticality="Medium"] { background: #FB8C00; color: #fff; }
+.ricefCriticality[data-criticality="Low"] { background: #FDD835; color: #333; }
+.ricefCriticality[data-criticality="Normal"] { background: #43A047; color: #fff; }
 
 /* ─── Donut Legend ───────────────────────────────────────────────── */
 .donutLegend { margin-top: 0.5rem; }
