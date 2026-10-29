@@ -15,8 +15,9 @@ export default class HeatmapService extends cds.ApplicationService {
             if (!fileContent) {
                 return req.error(400, 'No file content provided');
             }
-            if (replaceExisting && cds.env.profiles && cds.env.profiles.includes('production')) {
-                return req.error(403, 'Replacing existing risk records is disabled in production.');
+            if (replaceExisting && cds.env.profiles && cds.env.profiles.includes('production') &&
+                process.env.ALLOW_PRODUCTION_RISK_REPLACE !== 'true') {
+                return req.error(403, 'Production replacement requires ALLOW_PRODUCTION_RISK_REPLACE=true on the service application.');
             }
 
             // Create a pending UploadBatch record

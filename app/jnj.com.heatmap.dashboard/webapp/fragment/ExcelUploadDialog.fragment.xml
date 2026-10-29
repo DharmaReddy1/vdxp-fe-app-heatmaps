@@ -49,7 +49,7 @@
 					selected="{excelUpload>/replaceExisting}"
 					class="sapUiSmallMarginTop"/>
 				<MessageStrip
-					text="This removes existing risks and related mitigation/action rows before importing the Tracker sheet. Replacement is disabled in production."
+					text="This removes existing risks and related mitigation/action rows before importing the Tracker sheet. Production replacement must be enabled by the administrator."
 					type="Warning"
 					showIcon="true"
 					visible="{excelUpload>/replaceExisting}"
