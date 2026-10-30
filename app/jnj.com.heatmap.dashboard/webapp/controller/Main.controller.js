@@ -26,6 +26,7 @@ sap.ui.define([
 		"Low":      "#FDD835",
 		"Normal":   "#43A047",
 		"Critical": "#7B1FA2",
+		"Very High": "#7B1FA2",
 		"":         "#EEEEEE"
 	};
 	var HEATMAP_BAND_COLORS = {
@@ -453,7 +454,7 @@ sap.ui.define([
 					ID: risk.ID,
 					IsActiveEntity: risk.IsActiveEntity !== false,
 					rank: String(index + 1),
-					criticality: risk.criticality || "",
+					criticality: _displayPriority(risk),
 					title: [risk.ricefw || risk.riskId, risk.wricefName || risk.riskTitle].filter(Boolean).join(" – "),
 					description: [risk.processFunction || risk.process, risk.ricefwType, risk.release || risk.country].filter(Boolean).join(" – "),
 					readinessBand: risk.readinessBand || ""
@@ -487,12 +488,13 @@ sap.ui.define([
 							var agg = {};
 
 							aRisks.forEach(function (r) {
-								var crit = r.criticality || "Unknown";
+								var crit = _displayPriority(r) || "Unknown";
 								agg[crit] = (agg[crit] || 0) + 1;
 							});
 
 							var order = {
 								Critical: 0,
+								"Very High": 0.5,
 								High: 1,
 								Medium: 2,
 								Low: 3,
@@ -596,7 +598,7 @@ sap.ui.define([
 				var oRow = new HBox({ alignItems: "Center", justifyContent: "SpaceBetween" }).addStyleClass("donutLegendRow");
 				var oLeft = new HBox({ alignItems: "Center" });
 				var oDot = new Icon({ src: "sap-icon://circle-task-2" });
-				oDot.addStyleClass("donutDot donutDot" + (d.criticality || ""));
+				oDot.addStyleClass("donutDot donutDot" + (d.criticality || "").replace(/\s+/g, ""));
 				oLeft.addItem(oDot);
 				oLeft.addItem(new Text({ text: d.criticality || "Unknown" }).addStyleClass("donutLegendLabel"));
 				var oRight = new HBox({ alignItems: "Center" });
@@ -846,6 +848,12 @@ sap.ui.define([
 	});
 
 	// ─── Private helpers (module-level) ───────────────────────────────────────
+	function _displayPriority(risk) {
+		var value = String(risk.priority || risk.criticality || "").trim();
+		var canonical = { "very high": "Very High", critical: "Critical", high: "High", medium: "Medium", low: "Low", normal: "Normal" };
+		return canonical[value.toLowerCase()] || value;
+	}
+
 	function _escapeHtml(str) {
 		if (!str) { return ""; }
 		return String(str)

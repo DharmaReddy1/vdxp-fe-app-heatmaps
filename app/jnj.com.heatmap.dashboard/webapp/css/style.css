@@ -502,6 +502,8 @@ html, body {
 .ricefRowText .sapMText { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
 .ricefCriticality { background: #F3F4F6; color: #374151; }
 .ricefCriticality[data-criticality="Critical"] { background: #7B1FA2; color: #fff; }
+.ricefCriticality[data-criticality="Very High"] { background: #7B1FA2; color: #fff; }
+.donutDotVeryHigh { color: #7B1FA2 !important; }
 .ricefCriticality[data-criticality="High"] { background: #E53935; color: #fff; }
 .ricefCriticality[data-criticality="Medium"] { background: #FB8C00; color: #fff; }
 .ricefCriticality[data-criticality="Low"] { background: #FDD835; color: #333; }
