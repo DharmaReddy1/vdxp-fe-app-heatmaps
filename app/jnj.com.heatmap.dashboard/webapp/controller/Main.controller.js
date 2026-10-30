@@ -26,7 +26,7 @@ sap.ui.define([
 		"Low":      "#FDD835",
 		"Normal":   "#43A047",
 		"Critical": "#7B1FA2",
-		"Very High": "#7B1FA2",
+		"Very High": "#B71C1C",
 		"":         "#EEEEEE"
 	};
 	var HEATMAP_BAND_COLORS = {
