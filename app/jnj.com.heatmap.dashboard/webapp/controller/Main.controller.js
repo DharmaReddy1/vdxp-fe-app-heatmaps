@@ -211,7 +211,7 @@ sap.ui.define([
 				if (colIndex[c] === undefined) { colIndex[c] = colSet.length; colSet.push(c); }
 			});
 			var ricefwTypeOrder = {};
-			var priorityOrder = { "Critical": 0, "High": 1, "Medium": 2, "Low": 3 };
+			var priorityOrder = { "Critical": 0, "Very High": 1, "High": 2, "Medium": 3, "Low": 4 };
 			var rowOrder = mode === "ricefwType" ? ricefwTypeOrder : priorityOrder;
 			var colOrder = mode === "ricefwType" ? priorityOrder : ricefwTypeOrder;
 			rowSet.sort(function(a, b) {
@@ -341,7 +341,7 @@ sap.ui.define([
 				aRisks.sort(function(a, b) {
 					return String(b.createdAt || "").localeCompare(String(a.createdAt || "")) || String(a.ID).localeCompare(String(b.ID));
 				});
-				this._renderTopRiskList(aRisks.slice(0, 5));
+				this._renderTopRiskList(aRisks.slice(0, 6));
 			}.bind(this)).catch(function(e) {
 				if (requestId !== this._topRisksRequestId) { return; }
 				console.error("TopRisks load failed:", e);
@@ -630,19 +630,31 @@ sap.ui.define([
 					return { complexity: entry[0], count: entry[1], sortOrder: order[entry[0]] || 4 };
 				});
 				this._renderComplexityBars(aData);
+				var tierCounts = new Map([["Tier 1", 0], ["Tier 2", 0], ["Tier 3", 0]]);
+				aCtx.forEach(function(context) {
+					var tier = context.getObject().tier;
+					if (tierCounts.has(tier)) {
+						tierCounts.set(tier, tierCounts.get(tier) + 1);
+					}
+				});
+				var tierOrder = { "Tier 1": 1, "Tier 2": 2, "Tier 3": 3 };
+				this._renderComplexityBars(Array.from(tierCounts, function(entry) {
+					return { complexity: entry[0], count: entry[1], sortOrder: tierOrder[entry[0]] || 4 };
+				}), "tierBars");
 			}.bind(this)).catch(function(e) {
 				if (requestId !== this._complexityRequestId) { return; }
 				console.error("Complexity profile failed:", e);
 				this._renderComplexityBars([]);
+				this._renderComplexityBars([], "tierBars");
 			}.bind(this)).finally(function() { oList.destroy(); });
 		},
 
-		_renderComplexityBars: function (aData) {
-			var oBars = this.byId("complexityBars");
+		_renderComplexityBars: function (aData, sContainerId) {
+			var oBars = this.byId(sContainerId || "complexityBars");
 			if (!oBars) { return; }
 			oBars.destroyItems();
 			var max = aData.reduce(function(m, d){ return Math.max(m, d.count || 0); }, 1);
-			var colorOrder = { "Complex": COLOR_MAP["Critical"], "High": COLOR_MAP["High"], "Medium": COLOR_MAP["Medium"], "Low": COLOR_MAP["Low"], "Normal": COLOR_MAP["Normal"] };
+			var colorOrder = { "High": COLOR_MAP["High"], "Medium": COLOR_MAP["Medium"], "Low": COLOR_MAP["Low"], "Normal": COLOR_MAP["Normal"] };
 			// Sort by defined order
 			aData.sort(function(a, b){ return (a.sortOrder || 99) - (b.sortOrder || 99); });
 			aData.forEach(function(d) {
@@ -709,14 +721,17 @@ sap.ui.define([
 		// ─── Filter handling ──────────────────────────────────────────────────
 		onFilterChange: function () {
 			this._activeFilters = {
+				tier: this.byId("tierFilter") ? this.byId("tierFilter").getSelectedKey() : "",
 				country:      this.byId("countryFilter")      ? this.byId("countryFilter").getSelectedKey()      : "",
 				process:      this.byId("processFilter")      ? this.byId("processFilter").getSelectedKey()      : "",
 				complexity:   this.byId("complexityFilter")   ? this.byId("complexityFilter").getSelectedKey()   : "",
-				ricefwType: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : "",				priority: this.byId("priorityFilter") ? this.byId("priorityFilter").getSelectedKey() : ""
+				ricefwType: this.byId("riskCategoryFilter") ? this.byId("riskCategoryFilter").getSelectedKey() : "",
+				priority: this.byId("priorityFilter") ? this.byId("priorityFilter").getSelectedKey() : ""
 			};
 			this._updateFilterBadge();
 			this._loadHeatmap();
 			this._loadTopRisks();
+			this._loadInvestigationQueue();
 			this._loadRiskDistribution();
 			this._loadComplexityProfile();
 		},
@@ -737,14 +752,14 @@ sap.ui.define([
 			if (f.country)      { aFilters.push(new Filter("country",      FilterOperator.EQ, f.country)); }
 			if (f.process)      { aFilters.push(new Filter("process",      FilterOperator.EQ, f.process)); }
 			if (f.complexity)   { aFilters.push(new Filter("complexity",   FilterOperator.EQ, f.complexity)); }
-			["ricefwType", "priority"].forEach(function(key) {
+			["ricefwType", "priority", "tier"].forEach(function(key) {
 				if (f[key] !== undefined && f[key] !== "") { aFilters.push(new Filter(key, FilterOperator.EQ, f[key])); }
 			});
 			return aFilters;
 		},
 
 		onResetFilters: function () {
-			["countryFilter","processFilter","complexityFilter","riskCategoryFilter","priorityFilter"].forEach(function(sId) {
+			["countryFilter","processFilter","complexityFilter","riskCategoryFilter","priorityFilter","tierFilter"].forEach(function(sId) {
 				var oCtrl = this.byId(sId);
 				if (oCtrl) { oCtrl.setSelectedKey(""); }
 			}.bind(this));
@@ -795,10 +810,8 @@ sap.ui.define([
 		onViewAllRicefRecords: function () {
 			var params = {};
 			var filters = this._activeFilters || {};
-			["country", "process", "complexity", "ricefwType", "priority", "tier"].forEach(function(key) {
-				if (filters[key] !== undefined && filters[key] !== "") {
-					params[key] = filters[key] === null ? "" : filters[key];
-				}
+			["country", "process", "complexity", "ricefwType", "priority"].forEach(function(key) {
+				if (filters[key]) { params[key] = filters[key]; }
 			});
 			var oCrossAppNav = sap.ushell && sap.ushell.Container &&
 				sap.ushell.Container.getService("CrossApplicationNavigation");

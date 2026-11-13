@@ -425,6 +425,7 @@ html, body {
 }
 .legendCritical { background: #7B1FA2; }
 .legendHigh     { background: #EF4444; }
+.legendVeryHigh { background: #B71C1C; }
 .legendMedium   { background: #FB8C00; }
 .legendLow      { background: #FDD835; }
 .legendNormal   { background: #10B981; }
@@ -540,6 +541,11 @@ html, body {
 
 /* ─── Complexity Bars ────────────────────────────────────────────── */
 .complexityBars { gap: 0.4rem; }
+.tierProfileHeader {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #E5E7EB;
+}
 .complexityRow {
     display: flex;
     align-items: center;

@@ -143,6 +143,17 @@
                             <items><core:Item key="" text="All Priorities"/></items>
                         </Select>
                     </VBox>
+					<VBox class="filterItem">
+						<Label text="TIER" class="filterLabel" labelFor="tierFilter"/>
+						<Select id="tierFilter" change=".onFilterChange" class="filterSelect">
+							<items>
+								<core:Item key="" text="All Tiers"/>
+								<core:Item key="Tier 1" text="Tier 1"/>
+								<core:Item key="Tier 2" text="Tier 2"/>
+								<core:Item key="Tier 3" text="Tier 3"/>
+							</items>
+						</Select>
+					</VBox>
 					<Button
 						text="Clear Filters"
 						icon="sap-icon://clear-filter"
@@ -179,6 +190,10 @@
 					<HBox class="heatmapLegend" alignItems="Center" justifyContent="SpaceBetween">
 						<HBox alignItems="Center" class="legendGroup">
                             <HBox alignItems="Center" class="legendItem"><html:span class="legendDot" style="background: #7B1FA2"/><Text text="Critical Priority" class="legendText"/></HBox>
+							<HBox alignItems="Center" class="legendItem">
+								<html:span class="legendDot legendVeryHigh"/>
+								<Text text="Very High Priority" class="legendText"/>
+							</HBox>
 							<HBox alignItems="Center" class="legendItem">
 								<html:span class="legendDot legendHigh"/>
 								<Text text="High Priority" class="legendText"/>
@@ -318,6 +333,11 @@
 							<Title text="Complexity Profile" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
 						</HBox>
 						<VBox id="complexityBars" class="complexityBars"/>
+						<HBox alignItems="Center" class="panelHeader tierProfileHeader">
+							<core:Icon src="sap-icon://bar-chart" class="panelHeaderIcon panelHeaderIconGreen"/>
+							<Title text="Tier Profile" level="H4" class="panelTitle sapUiTinyMarginBegin"/>
+						</HBox>
+						<VBox id="tierBars" class="complexityBars"/>
 					</VBox>
 
 				</HBox>

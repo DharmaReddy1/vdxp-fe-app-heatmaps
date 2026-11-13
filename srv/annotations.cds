@@ -155,6 +155,7 @@ annotate service.Risk with @(
             release,
             processFunction,
             priority,
+            tier,
             complexity,
             riskBand,
             readinessBand,
