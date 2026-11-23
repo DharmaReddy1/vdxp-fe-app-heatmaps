@@ -1,3 +1,6 @@
 <core:FragmentDefinition xmlns="sap.m" xmlns:core="sap.ui.core">
-    <ObjectIdentifier title="{ricefw}" text="{wricefName}" tooltip="{wricefName}"/>
+    <VBox tooltip="{wricefName}">
+        <Link text="{ricefw}" href="{ricefwUrl}" target="_blank"/>
+        <Text text="{wricefName}"/>
+    </VBox>
 </core:FragmentDefinition>

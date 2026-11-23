@@ -163,7 +163,7 @@ annotate service.Risk with @(
             objectType
         ],
         LineItem: [
-            { Value: epicJiraId,             Label: 'Epic JIRA ID',                 ![@UI.Importance]: #High },
+            { $Type: 'UI.DataFieldWithUrl', Value: epicJiraId, Url: epicJiraUrl, Label: 'Epic JIRA ID', ![@UI.Importance]: #High },
             { Value: processFunction,        Label: 'Process Function',             ![@UI.Importance]: #High },
             { Value: scrumTeam,              Label: 'Scrum Team',                   ![@UI.Importance]: #High },
             { Value: ricefwType,             Label: 'RICEFW Type',                  ![@UI.Importance]: #High },            { Value: commonObjects,          Label: 'Common Objects',               ![@UI.Importance]: #High },
@@ -173,7 +173,7 @@ annotate service.Risk with @(
             { Value: fdOwnerNameKtPoc,       Label: 'FD Owner Name / KT POC',       ![@UI.Importance]: #High },
             { Value: release,                Label: 'Release',                      ![@UI.Importance]: #High },
             { Value: objectType,             Label: 'Object Type',                  ![@UI.Importance]: #High },
-            { Value: ktSessionId,            Label: 'KT Session ID',                ![@UI.Importance]: #High },
+            { $Type: 'UI.DataFieldWithUrl', Value: ktSessionId, Url: ktSessionUrl, Label: 'KT Session ID', ![@UI.Importance]: #High },
             { Value: ktDate,                 Label: 'KT Date',                      ![@UI.Importance]: #High },
             { Value: criticalityScore,       Label: 'Criticality (1–5)',            ![@UI.Importance]: #High },
             { Value: complexityScore,        Label: 'Complexity (1–5)',             ![@UI.Importance]: #High },
@@ -248,11 +248,11 @@ annotate service.Risk with @(
         FieldGroup#TrackerDetails: {
             Label: 'RICEF Details',
             Data: [
-                { Value: epicJiraId },
+                { $Type: 'UI.DataFieldWithUrl', Value: epicJiraId, Url: epicJiraUrl },
                 { Value: processFunction },
                 { Value: scrumTeam },
                 { Value: ricefwType },
-                { Value: ricefw },
+                { $Type: 'UI.DataFieldWithUrl', Value: ricefw, Url: ricefwUrl },
                 { Value: wricefName },
                 { Value: commonObjects },
                 { Value: newModifyExtend },
@@ -261,7 +261,7 @@ annotate service.Risk with @(
                 { Value: fdOwnerNameKtPoc },
                 { Value: release },
                 { Value: objectType },
-                { Value: ktSessionId },
+                { $Type: 'UI.DataFieldWithUrl', Value: ktSessionId, Url: ktSessionUrl },
                 { Value: ktDate }
             ]
         },

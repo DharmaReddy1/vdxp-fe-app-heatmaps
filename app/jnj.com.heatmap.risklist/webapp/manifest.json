@@ -148,6 +148,7 @@
 											"template": "jnj.com.heatmap.risklist.ext.fragment.RICEFWIdentifier",
 											"properties": [
 												"ricefw",
+												"ricefwUrl",
 												"wricefName"
 											],
 											"width": "24rem",

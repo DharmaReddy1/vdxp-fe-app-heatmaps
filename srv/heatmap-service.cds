@@ -9,6 +9,18 @@ service HeatmapService @(path: '/heatmap') {
     entity Risk as projection on db.Risk {
         *,
         workstream.name as workstreamName : String(100),
+        case
+            when epicJiraId is null or epicJiraId = '' then null
+            else concat('https://jira.jnj.com/projects/JGHJ/issues/', epicJiraId)
+        end as epicJiraUrl : String(255),
+        case
+            when ricefw is null or ricefw = '' then null
+            else concat('https://confluence.jnj.com/spaces/VBPO/pages/1036796221/', ricefw)
+        end as ricefwUrl : String(512),
+        case
+            when epicJiraId = 'JGHJ-53886' then 'https://jnj.sharepoint.com/teams/IMTranscend-15-OperateState/Shared%20Documents/Forms/AllItems.aspx?id=%2Fteams%2FIMTranscend%2D15%2DOperateState%2FShared%20Documents%2F02%2E0%5FApplication%20and%20Platform%20Support%2FApplication%20Support%2FIBM%20Know'
+            else null
+        end as ktSessionUrl : String(1024),
     } actions {
         action exportToExcel() returns String;
     };
